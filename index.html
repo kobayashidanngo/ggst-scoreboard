@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GGST 国战对战表</title>
+  <style>
+    :root { --bg:#0b0f16; --card:#121a27; --muted:#9fb0c3; --text:#eaf0f7; --line:#223049; --good:#28d17c; --bad:#ff5c7a; --warn:#ffcc66; }
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC","Microsoft YaHei", Arial, sans-serif;
+      min-height: 100vh;
+
+      /* 背景适配修复：多层渐变 + fixed，避免大屏断层 */
+      background:
+        radial-gradient(1200px 850px at 20% 8%, rgba(21,33,58,0.95) 0%, rgba(11,15,22,0) 70%),
+        radial-gradient(1100px 800px at 82% 0%, rgba(16,29,54,0.85) 0%, rgba(11,15,22,0) 68%),
+        radial-gradient(1200px 900px at 50% 115%, rgba(17,29,51,0.70) 0%, rgba(11,15,22,0) 60%),
+        radial-gradient(900px 650px at 12% 92%, rgba(18,30,52,0.55) 0%, rgba(11,15,22,0) 60%),
+        var(--bg);
+      background-attachment: fixed;
+      color:var(--text);
+    }
+
+    .wrap{ max-width:1200px; margin:0 auto; padding:18px; }
+    header{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .title{ display:flex; flex-direction:column; gap:6px; }
+    h1{ margin:0; font-size:20px; letter-spacing:.5px; }
+    .sub{ color:var(--muted); font-size:13px; line-height:1.5; }
+
+    .row{ display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px; }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; padding:14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2{ margin:0 0 10px; font-size:14px; color:#dbe7f3; letter-spacing:.2px; }
+
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    label{ font-size:12px; color:var(--muted); }
+
+    input[type="text"], input[type="number"], textarea{
+      width:100%; background:rgba(0,0,0,.18); color:var(--text);
+      border:1px solid rgba(255,255,255,.10); border-radius:10px;
+      padding:10px 10px; outline:none;
+    }
+    textarea{ min-height:180px; resize:vertical; line-height:1.5; }
+
+    .btnbar{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      padding:10px 12px; border-radius:12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease;
+      font-weight:600;
+      user-select:none;
+    }
+    button:hover{ background: rgba(255,255,255,.10); }
+    button:active{ transform: translateY(1px); }
+    button.primary{ background: rgba(40,209,124,.14); border-color: rgba(40,209,124,.30); }
+    button.danger{ background: rgba(255,92,122,.12); border-color: rgba(255,92,122,.28); }
+    button.ghost{ background: transparent; }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    .pill{
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+      font-size:12px; color: var(--muted);
+    }
+    .pill strong{ color:var(--text); font-weight:800; }
+    .setupNote{ font-size:12px; color:var(--muted); line-height:1.65; }
+
+    .matchTop{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .scoreboard{ display:grid; grid-template-columns: 1fr auto 1fr; gap:12px; align-items:stretch; margin-top:12px; }
+
+    .teamBox{
+      border-radius:16px; padding:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      display:flex; flex-direction:column; gap:10px;
+      min-height: 210px;
+    }
+    .teamName{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .teamName .name{ font-size:16px; font-weight:900; letter-spacing:.2px; }
+    .tag{ font-size:11px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.12); color:var(--muted); }
+    .activePlayer{ font-size:18px; font-weight:900; }
+    .meta{ color:var(--muted); font-size:12px; line-height:1.55; }
+    .bigScore{ font-size:40px; font-weight:1000; line-height:1; }
+    .controls{ display:flex; gap:8px; flex-wrap:wrap; }
+    .controls button{ padding:10px 12px; border-radius:12px; }
+
+    .midBox{
+      display:flex; flex-direction:column; gap:10px; justify-content:center; align-items:center;
+      padding:14px; border-radius:16px;
+      border:1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+    }
+    .vs{ font-weight:1000; letter-spacing:2px; color:#dfe9f4; opacity:.9; }
+    .small{ font-size:12px; color:var(--muted); text-align:center; line-height:1.5; }
+
+    .log{
+      max-height: 460px; overflow:auto;
+      padding-right:6px;
+    }
+    .log ol{ margin:0; padding-left:18px; }
+    .log li{ margin:8px 0; color:#dbe6f4; }
+    .log .dim{ color:var(--muted); }
+
+    .hlGood{ color: var(--good); font-weight:900; }
+    .hlBad{ color: var(--bad); font-weight:900; }
+    .hlWarn{ color: var(--warn); font-weight:900; }
+
+    .rightCol{ display:flex; flex-direction:column; gap:14px; }
+    .hidden{ display:none !important; }
+
+    .finish{
+      margin-top:12px; padding:12px; border-radius:14px;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      line-height:1.6;
+    }
+
+    /* 可视化名单 */
+    .rosters{
+      display:grid; grid-template-columns:1fr 1fr; gap:12px;
+      margin-top:12px;
+    }
+    .rosterCard{
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      padding:12px;
+      min-height: 160px;
+    }
+    .rosterHead{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:10px;
+      margin-bottom:10px;
+    }
+    .rosterHead .title{ font-size:13px; font-weight:900; color:#dbe7f3; }
+    .rosterHead .hint{ font-size:11px; color:var(--muted); }
+    .rosterList{ display:flex; flex-direction:column; gap:8px; }
+
+    /* ✅ 名字显示适配核心：名字区域有下限；badge 不够就换行到下一行 */
+    .playerRow{
+      display:flex;
+      flex-wrap: wrap;     /* 允许换行 */
+      row-gap: 6px;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .playerLeft{
+      display:flex; align-items:center; gap:10px;
+      flex: 1 1 260px;     /* 优先占空间 */
+      min-width: 220px;    /* 不被压到只剩1个字 */
+    }
+    .playerIndex{
+      flex: 0 0 26px;
+      width:26px;
+      text-align:right;
+      font-size:11px;
+      color:var(--muted);
+    }
+    .playerName{
+      flex: 1 1 auto;
+      min-width: 10ch;                 /* 至少显示的字符宽度 */
+      max-width: clamp(14ch, 26vw, 34ch); /* 合理上限 */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      cursor: pointer;                 /* ✅ 点击复制 */
+      user-select: none;
+    }
+    .playerName:hover{
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+    }
+    .badges{
+      flex: 0 1 auto;
+      max-width: 100%;
+      display:flex;
+      gap:6px;
+      flex-wrap: wrap;  /* badge 自己换行 */
+      justify-content:flex-end;
+    }
+
+    .badge{
+      font-size:11px; padding:3px 7px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      background: rgba(0,0,0,.12);
+      white-space:nowrap;
+    }
+    .badge.good{ border-color: rgba(40,209,124,.30); color:#bff5d9; background: rgba(40,209,124,.10); }
+    .badge.warn{ border-color: rgba(255,204,102,.30); color:#ffe3b0; background: rgba(255,204,102,.10); }
+    .badge.bad{ border-color: rgba(255,92,122,.30); color:#ffc4cf; background: rgba(255,92,122,.10); }
+
+    .playerRow.active{
+      border-color: rgba(40,209,124,.40);
+      background: rgba(40,209,124,.08);
+      box-shadow: 0 0 0 1px rgba(40,209,124,.14) inset;
+    }
+    .playerRow.out{ opacity:.38; }
+    .playerRow.out .playerName{ text-decoration: line-through; }
+
+    /* 内置确认弹窗 / toast */
+    .modalMask{
+      position:fixed; inset:0; z-index:9999;
+      background:rgba(0,0,0,.55);
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background: rgba(15,23,36,.98);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.55);
+    }
+    .modal h3{ margin:0 0 8px; font-size:15px; letter-spacing:.2px; }
+    .modal p{ margin:0; color:var(--muted); line-height:1.65; white-space:pre-line; }
+    .modal .btnbar{ justify-content:flex-end; margin-top:12px; }
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background:rgba(0,0,0,.6);
+      border:1px solid rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius:999px;
+      z-index:9999;
+      color:var(--text);
+      font-size:12px;
+      max-width:min(720px, 92vw);
+      text-align:center;
+    }
+
+    .kv{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .kv .k{ color:var(--muted); font-size:12px; }
+    .kv .v{ font-weight:900; }
+
+    @media (max-width: 980px){
+      .row{ grid-template-columns:1fr; }
+      .scoreboard{ grid-template-columns:1fr; }
+      .midBox{ order:2; }
+      .rosters{ grid-template-columns:1fr; }
+      .playerName{ max-width: 80vw; }
+    }
+    @media (max-width: 720px){
+      .playerLeft{ min-width: 70%; }
+      .badges{ width:100%; justify-content:flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+  <header>
+    <div class="title">
+      <h1>GGST 国战对战表</h1>
+      <div class="sub" id="ruleLine">规则：每场 <b>抢3局</b>；赢家留场；任意选手 <b>连赢3个人后自爆离场</b>；每队最后一位 <b>大将</b> 不受自爆限制。</div>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span class="pill">快捷键：<strong>A</strong> 红 +1局｜<strong>L</strong> 白 +1局｜<strong>Backspace</strong> 撤销</span>
+      <button type="button" class="ghost" id="btnClearStorage" title="清空本地保存（不会删你的文件，只删浏览器保存的状态）">清空本地保存</button>
+    </div>
+  </header>
+
+  <div class="row">
+    <!-- Left -->
+    <div class="card" id="setupCard">
+      <h2>① 填写队伍与选手（可选填排位分数；最后一位默认大将）</h2>
+
+      <div class="grid2">
+        <div class="field">
+          <label>红队名称</label>
+          <input type="text" id="teamAName" value="床国" />
+        </div>
+        <div class="field">
+          <label>白队名称</label>
+          <input type="text" id="teamBName" value="狼国" />
+        </div>
+      </div>
+
+      <div class="grid3" style="margin-top:12px;">
+        <div class="field">
+          <label>抢几局（先到几局获胜）</label>
+          <input type="number" id="raceToInput" min="1" max="15" value="3" />
+        </div>
+        <div class="field">
+          <label>连胜自爆数（0=关闭）</label>
+          <input type="number" id="streakLimitInput" min="0" max="20" value="3" />
+        </div>
+        <div class="field">
+          <label>排序规则</label>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:8px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.12);">
+            <label style="display:flex; gap:8px; align-items:center; margin:0; font-size:12px; color:var(--muted);">
+              <input type="checkbox" id="autoSortSeed" checked />
+              <span>开始前按分数排序（分数越大越靠后）</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div class="field">
+          <label>红队选手名单（每行一个；可写“名字 分数”/“名字|分数”/“名字,分数”）</label>
+          <textarea id="teamAPlayers"></textarea>
+        </div>
+        <div class="field">
+          <label>白队选手名单（同上）</label>
+          <textarea id="teamBPlayers"></textarea>
+        </div>
+      </div>
+
+      <div class="btnbar">
+        <button type="button" class="primary" id="btnStart">开始比赛</button>
+        <button type="button" id="btnLoadDemo">填入示例名单</button>
+        <button type="button" id="btnSortWriteback">整理名单（按分数写回）</button>
+        <button type="button" id="btnSwap">红白互换</button>
+      </div>
+
+      <div class="setupNote" style="margin-top:10px;">
+        1）名单顺序=上场顺序（上→下：先上场→后上场）。<br/>
+        2）按分数排序：分数从小到大排列，<b>分数越大越靠后</b>；最后一位自动视为<b>大将</b>。<br/>
+        3）自爆数填 0 即关闭自爆规则（大将始终不自爆）。<br/>
+        4）在对战表里<strong>点击选手名字可复制</strong>（也可悬停查看完整名字）。<br/>
+      </div>
+    </div>
+
+    <div class="card hidden" id="matchCard">
+      <div class="matchTop">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <span class="pill">第 <strong id="matchNo">1</strong> 场</span>
+          <span class="pill">抢 <strong id="raceTo">3</strong> 局</span>
+          <span class="pill" id="pillExplode">自爆：<strong id="streakLimitShow">3</strong></span>
+          <span class="pill">红剩余：<strong id="remainA">-</strong></span>
+          <span class="pill">白剩余：<strong id="remainB">-</strong></span>
+          <span class="pill">MVP：<strong id="mvpShort">-</strong></span>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" id="btnUndo">撤销一步</button>
+          <button type="button" class="danger" id="btnReset">重开整场（保留名单）</button>
+          <button type="button" class="ghost" id="btnBackSetup">返回设置（丢弃进度）</button>
+        </div>
+      </div>
+
+      <div class="scoreboard">
+        <div class="teamBox" id="boxA">
+          <div class="teamName">
+            <div class="name" id="showTeamA">红队</div>
+            <div class="tag">红方</div>
+          </div>
+          <div class="activePlayer" id="activeA">-</div>
+          <div class="meta" id="metaA">连胜击败数：0 ｜ 身份：- ｜ 局胜：0</div>
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px;">
+            <div>
+              <div class="meta">本场局分</div>
+              <div class="bigScore" id="scoreA">0</div>
+            </div>
+            <div class="controls">
+              <button type="button" class="primary" id="btnAPlus">红 +1局（A）</button>
+              <button type="button" id="btnAMinus">红 -1局</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="midBox">
+          <div class="vs">VS</div>
+          <div class="small" id="midRule"></div>
+          <button type="button" id="btnEndMatch" disabled>结算本场（到达抢几自动结算）</button>
+          <div id="finishBanner" class="finish hidden"></div>
+        </div>
+
+        <div class="teamBox" id="boxB">
+          <div class="teamName">
+            <div class="name" id="showTeamB">白队</div>
+            <div class="tag">白方</div>
+          </div>
+          <div class="activePlayer" id="activeB">-</div>
+          <div class="meta" id="metaB">连胜击败数：0 ｜ 身份：- ｜ 局胜：0</div>
+          <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:10px;">
+            <div>
+              <div class="meta">本场局分</div>
+              <div class="bigScore" id="scoreB">0</div>
+            </div>
+            <div class="controls">
+              <button type="button" class="primary" id="btnBPlus">白 +1局（L）</button>
+              <button type="button" id="btnBMinus">白 -1局</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 可视化名单 -->
+      <div class="rosters">
+        <div class="rosterCard">
+          <div class="rosterHead">
+            <div class="title" id="rosterTitleA">红队 对战表</div>
+            <div class="hint">上→下：先上场→后上场</div>
+          </div>
+          <div id="rosterA" class="rosterList"></div>
+        </div>
+        <div class="rosterCard">
+          <div class="rosterHead">
+            <div class="title" id="rosterTitleB">白队 对战表</div>
+            <div class="hint">上→下：先上场→后上场</div>
+          </div>
+          <div id="rosterB" class="rosterList"></div>
+        </div>
+      </div>
+
+      <div class="setupNote" style="margin-top:10px;">
+        “连赢X人自爆”=同一选手连续击败 <b>X 位对方选手</b>（X 场对手更替的胜利）。自爆数填 0 则关闭自爆规则；大将不自爆。
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="rightCol">
+      <div class="card">
+        <h2>② 比赛日志（自动记录每场结果/淘汰/自爆）</h2>
+        <div class="log" id="logBox">
+          <ol id="logList"></ol>
+        </div>
+        <div class="btnbar">
+          <button type="button" id="btnCopyLog">复制日志文本</button>
+          <button type="button" id="btnClearLog" class="ghost">清空日志</button>
+        </div>
+      </div>
+
+      <div class="card" id="mvpPrizeCard">
+        <h2>③ MVP 与参与奖抽奖</h2>
+
+        <div class="kv" style="margin:6px 0 10px;">
+          <div class="k">当前 MVP：</div>
+          <div class="v" id="mvpLong">-</div>
+        </div>
+        <div class="setupNote" id="mvpExplain" style="margin-bottom:12px;">
+          统计口径：全场累计“局胜”最多者；若并列，比赛结束后优先给获胜队；获胜队仍并列则并列 MVP。
+        </div>
+
+        <div style="height:1px; background:rgba(255,255,255,.08); margin:12px 0;"></div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>抽奖人数（参与奖）</label>
+            <input type="number" id="raffleCount" min="1" max="50" value="1" />
+          </div>
+          <div class="field">
+            <label>操作</label>
+            <div class="btnbar" style="margin-top:0;">
+              <button type="button" class="primary" id="btnRaffle">抽取参与奖</button>
+              <button type="button" id="btnRaffleReroll">重新抽</button>
+              <button type="button" class="ghost" id="btnRaffleClear">清空结果</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setupNote" style="margin-top:10px;">
+          <b>抽奖结果：</b>
+          <div id="raffleResult" style="margin-top:6px; line-height:1.7;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>④ 说明</h2>
+        <div class="setupNote">
+          <ul style="margin:0; padding-left:18px; line-height:1.75;">
+            <li>支持直接双击运行（离线可用）。</li>
+            <li>浏览器会自动保存当前比赛状态，刷新页面不会丢。</li>
+            <li>名单展示：当前出战高亮；淘汰/自爆删除线变暗并标注原因。</li>
+            <li>点击对战表里的选手名字可复制。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 内置确认弹窗 -->
+<div id="modalMask" class="modalMask hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">确认</h3>
+    <p id="modalMsg"></p>
+    <div class="btnbar">
+      <button type="button" id="modalCancel">取消</button>
+      <button type="button" class="primary" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "ggst_nationwar_state_v3_full";
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const nowTime = () => new Date().toLocaleString();
+  const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
+  const isNum = (v) => typeof v === "number" && Number.isFinite(v);
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ---- Modal / Toast ----
+  const modal = {
+    mask: $("modalMask"),
+    title: $("modalTitle"),
+    msg: $("modalMsg"),
+    ok: $("modalOk"),
+    cancel: $("modalCancel"),
+    resolve: null,
+  };
+
+  function toast(text, ms = 1400) {
+    const t = $("toast");
+    t.textContent = text;
+    t.classList.remove("hidden");
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => t.classList.add("hidden"), ms);
+  }
+
+  function confirmUI(message, title="确认操作", okText="确定", cancelText="取消") {
+    return new Promise((resolve) => {
+      modal.title.textContent = title;
+      modal.msg.textContent = message;
+      modal.ok.textContent = okText;
+      modal.cancel.textContent = cancelText;
+      modal.mask.classList.remove("hidden");
+      modal.mask.setAttribute("aria-hidden", "false");
+      modal.resolve = resolve;
+      setTimeout(() => modal.ok.focus(), 0);
+    });
+  }
+  function closeModal(result) {
+    modal.mask.classList.add("hidden");
+    modal.mask.setAttribute("aria-hidden", "true");
+    const r = modal.resolve;
+    modal.resolve = null;
+    if (typeof r === "function") r(result);
+  }
+  modal.ok.addEventListener("click", () => closeModal(true));
+  modal.cancel.addEventListener("click", () => closeModal(false));
+  modal.mask.addEventListener("click", (e) => { if (e.target === modal.mask) closeModal(false); });
+  window.addEventListener("keydown", (e) => {
+    if (!modal.resolve) return;
+    if (e.key === "Escape") { e.preventDefault(); closeModal(false); }
+    if (e.key === "Enter") { e.preventDefault(); closeModal(true); }
+  }, { passive:false });
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // ---- Parse players ----
+  function parsePlayerLine(line, order) {
+    const raw = (line ?? "").trim();
+    if (!raw) return null;
+
+    let name = raw;
+    let seed = null;
+
+    const parts = raw.split(/[|,，\t]/).map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      const last = parts[parts.length - 1];
+      const n = Number(last);
+      if (Number.isFinite(n)) {
+        seed = n;
+        name = parts.slice(0, -1).join(" ").trim();
+      }
+    }
+
+    if (!isNum(seed)) {
+      const m = raw.match(/(-?\d+(?:\.\d+)?)\s*$/);
+      if (m) {
+        seed = Number(m[1]);
+        name = raw.slice(0, m.index).trim();
+      }
+    }
+
+    if (!name) name = raw;
+
+    return { name, seed: isNum(seed) ? seed : null, order };
+  }
+
+  function linesToPlayers(text) {
+    const lines = String(text || "").split(/\r?\n/g);
+    const out = [];
+    for (let i=0;i<lines.length;i++){
+      const p = parsePlayerLine(lines[i], i);
+      if (p && p.name.trim()) out.push(p);
+    }
+    return out;
+  }
+
+  function playersToLines(players) {
+    return (players || []).map(p => isNum(p.seed) ? `${p.name} ${p.seed}` : `${p.name}`).join("\n");
+  }
+
+  function sortPlayersBySeed(players) {
+    return players.slice().sort((a,b) => {
+      const sa = isNum(a.seed) ? a.seed : 0;
+      const sb = isNum(b.seed) ? b.seed : 0;
+      if (sa !== sb) return sa - sb;
+      return (a.order ?? 0) - (b.order ?? 0);
+    }).map((p, idx) => ({ ...p, order: idx }));
+  }
+
+  function uid(prefix="p") {
+    return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
+  }
+
+  // ---- State ----
+  let state = null;
+  let history = [];
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+      if (!obj || obj.version !== 3) return null;
+      return obj;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function pushHistory() {
+    history.push(deepClone(state));
+    if (history.length > 200) history.shift();
+  }
+
+  function undo() {
+    if (history.length < 1) return;
+    state = history.pop();
+    saveState();
+    renderAll();
+  }
+
+  function makeNewStateFromSetup() {
+    const teamAName = $("teamAName").value.trim() || "红队";
+    const teamBName = $("teamBName").value.trim() || "白队";
+    const raceTo = clamp(Number($("raceToInput").value || 3), 1, 15);
+    const streakLimit = clamp(Number($("streakLimitInput").value ?? 3), 0, 20);
+    const autoSort = $("autoSortSeed").checked;
+
+    let A = linesToPlayers($("teamAPlayers").value);
+    let B = linesToPlayers($("teamBPlayers").value);
+
+    if (A.length < 1 || B.length < 1) {
+      toast("两队至少各需要 1 名选手。");
+      return null;
+    }
+
+    if (autoSort) {
+      A = sortPlayersBySeed(A);
+      B = sortPlayersBySeed(B);
+    }
+
+    const enrich = (arr, teamKey) => arr.map((p,i) => ({
+      id: uid(teamKey),
+      name: p.name,
+      seed: isNum(p.seed) ? p.seed : null,
+      order: i,
+      isTaisho: i === arr.length - 1,
+      stats: { gamesWon: 0, gamesLost: 0, matchesWon: 0, matchesLost: 0 },
+    }));
+
+    const playersA = enrich(A, "A");
+    const playersB = enrich(B, "B");
+
+    return {
+      version: 3,
+      createdAt: Date.now(),
+      teamAName, teamBName,
+      raceTo,
+      streakLimit, // 0 = off
+      settings: { autoSort },
+      teams: {
+        A: { players: playersA, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+        B: { players: playersB, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+      },
+      current: { matchNo: 1, gameA: 0, gameB: 0, finished: false, winner: null },
+      log: [],
+      raffle: { count: 1, winners: [] }
+    };
+  }
+
+  // ---- Helpers ----
+  function opp(teamKey) { return teamKey === "A" ? "B" : "A"; }
+  function teamLabel(teamKey) { return teamKey === "A" ? state.teamAName : state.teamBName; }
+
+  function getActivePlayer(teamKey) {
+    const t = state.teams[teamKey];
+    if (t.pos >= t.players.length) return null;
+    return t.players[t.pos];
+  }
+
+  function teamRemaining(teamKey) {
+    const t = state.teams[teamKey];
+    return Math.max(0, t.players.length - t.pos);
+  }
+
+  function isTeamOut(teamKey) {
+    const t = state.teams[teamKey];
+    return t.pos >= t.players.length;
+  }
+
+  function addLog(html) {
+    state.log.push({ t: Date.now(), html });
+    const li = document.createElement("li");
+    li.innerHTML = html;
+    $("logList").appendChild(li);
+    $("logBox").scrollTop = $("logBox").scrollHeight;
+  }
+
+  function rebuildLogDOM() {
+    $("logList").innerHTML = "";
+    for (const item of (state.log || [])) {
+      const li = document.createElement("li");
+      li.innerHTML = item.html;
+      $("logList").appendChild(li);
+    }
+  }
+
+  // ---- MVP ----
+  function computeMVP() {
+    if (!state) return { text: "-", short: "-", ids: [] };
+
+    const all = [];
+    ["A","B"].forEach(k => state.teams[k].players.forEach(p => all.push({ ...p, teamKey:k })));
+
+    const max = Math.max(0, ...all.map(p => p.stats?.gamesWon ?? 0));
+    if (max <= 0) return { text: "暂无（还没产生局胜）", short: "-", ids: [] };
+
+    let top = all.filter(p => (p.stats?.gamesWon ?? 0) === max);
+
+    if (top.length > 1 && state.current.finished && state.current.winner) {
+      const winTeam = state.current.winner;
+      const inWin = top.filter(p => p.teamKey === winTeam);
+      if (inWin.length > 0) top = inWin;
+    }
+
+    const names = top.map(p => `${p.name}（${teamLabel(p.teamKey)}，局胜${p.stats.gamesWon}）`);
+    const short = top.length === 1 ? `${top[0].name}(${top[0].stats.gamesWon})` : `并列(${max})`;
+
+    return { text: names.join(" / "), short, ids: top.map(p => p.id) };
+  }
+
+  // ---- Match logic ----
+  function canEndMatch() {
+    return state.current.gameA >= state.raceTo || state.current.gameB >= state.raceTo;
+  }
+
+  function addGame(teamKey, delta) {
+    if (!state || state.current.finished) return;
+    if (isTeamOut("A") || isTeamOut("B")) return;
+
+    pushHistory();
+
+    if (teamKey === "A") state.current.gameA = clamp(state.current.gameA + delta, 0, state.raceTo);
+    if (teamKey === "B") state.current.gameB = clamp(state.current.gameB + delta, 0, state.raceTo);
+
+    if (state.current.gameA >= state.raceTo) state.current.gameB = clamp(state.current.gameB, 0, Math.max(0, state.raceTo - 1));
+    if (state.current.gameB >= state.raceTo) state.current.gameA = clamp(state.current.gameA, 0, Math.max(0, state.raceTo - 1));
+
+    saveState();
+    renderAll();
+
+    if (canEndMatch()) {
+      setTimeout(() => {
+        if (state && !state.current.finished && canEndMatch()) endMatch();
+      }, 120);
+    }
+  }
+
+  function endMatch() {
+    if (!state || state.current.finished) return;
+    if (!canEndMatch()) return;
+
+    pushHistory();
+
+    const aP = getActivePlayer("A");
+    const bP = getActivePlayer("B");
+    if (!aP || !bP) return;
+
+    const aScore = state.current.gameA;
+    const bScore = state.current.gameB;
+    const winner = (aScore >= state.raceTo) ? "A" : "B";
+    const loser  = opp(winner);
+
+    const wP = winner === "A" ? aP : bP;
+    const lP = loser  === "A" ? aP : bP;
+
+    const wScore = winner === "A" ? aScore : bScore;
+    const lScore = winner === "A" ? bScore : aScore;
+
+    // stats
+    wP.stats.gamesWon += wScore;
+    wP.stats.gamesLost += lScore;
+    wP.stats.matchesWon += 1;
+
+    lP.stats.gamesWon += lScore;
+    lP.stats.gamesLost += wScore;
+    lP.stats.matchesLost += 1;
+
+    state.teams[winner].matchWins += 1;
+
+    // loser eliminated
+    state.teams[loser].eliminated.push({
+      id: lP.id, name: lP.name, reason: "败北", atMatch: state.current.matchNo, time: Date.now()
+    });
+    state.teams[loser].pos += 1;
+    state.teams[loser].activeStreak = 0;
+
+    // winner streak +1
+    state.teams[winner].activeStreak += 1;
+
+    addLog(
+      `第 <b>${state.current.matchNo}</b> 场：` +
+      `<span class="hlGood">${escapeHtml(teamLabel(winner))} ${escapeHtml(wP.name)}</span> ` +
+      `以 <b>${wScore}</b> - <b>${lScore}</b> ` +
+      `击败 <span class="hlBad">${escapeHtml(teamLabel(loser))} ${escapeHtml(lP.name)}</span>` +
+      ` <span class="dim">（${nowTime()}）</span>` +
+      `<br/><span class="dim">→ ${escapeHtml(teamLabel(loser))} ${escapeHtml(lP.name)} 淘汰；` +
+      `${escapeHtml(teamLabel(winner))} ${escapeHtml(wP.name)} 连续击败数 = ${state.teams[winner].activeStreak}${wP.isTaisho ? "（大将不自爆）" : ""}</span>`
+    );
+
+    // explode if enabled
+    if (state.streakLimit > 0 && !wP.isTaisho && state.teams[winner].activeStreak >= state.streakLimit) {
+      state.teams[winner].eliminated.push({
+        id: wP.id, name: wP.name, reason: `连赢${state.streakLimit}人自爆`, atMatch: state.current.matchNo, time: Date.now()
+      });
+      state.teams[winner].pos += 1;
+      state.teams[winner].activeStreak = 0;
+
+      addLog(
+        `<span class="hlWarn">自爆：</span>` +
+        `<span class="hlWarn">${escapeHtml(teamLabel(winner))} ${escapeHtml(wP.name)}</span>` +
+        ` 连赢${state.streakLimit}人，触发自爆离场（换下一位）。`
+      );
+    }
+
+    // finish?
+    if (isTeamOut("A") || isTeamOut("B")) {
+      state.current.finished = true;
+      state.current.winner = isTeamOut("A") ? "B" : "A";
+
+      addLog(
+        `<b>比赛结束：</b><span class="hlGood">${escapeHtml(teamLabel(state.current.winner))}</span> 获胜，` +
+        `<span class="hlBad">${escapeHtml(teamLabel(opp(state.current.winner)))}</span> 全员出局。`
+      );
+      toast(`比赛结束：${teamLabel(state.current.winner)} 获胜`);
+    } else {
+      state.current.matchNo += 1;
+      state.current.gameA = 0;
+      state.current.gameB = 0;
+    }
+
+    saveState();
+    renderAll();
+  }
+
+  async function resetAllKeepRoster() {
+    if (!state) return;
+    const ok = await confirmUI(
+      "将重开整场比赛（保留名单与抢几/自爆设置；清空胜场/淘汰/自爆/日志/MVP统计/抽奖）。",
+      "确认重开？",
+      "重开",
+      "取消"
+    );
+    if (!ok) return;
+
+    const keepA = deepClone(state.teams.A.players);
+    const keepB = deepClone(state.teams.B.players);
+    keepA.forEach(p => p.stats = { gamesWon:0, gamesLost:0, matchesWon:0, matchesLost:0 });
+    keepB.forEach(p => p.stats = { gamesWon:0, gamesLost:0, matchesWon:0, matchesLost:0 });
+
+    history = [];
+    state = {
+      version: 3,
+      createdAt: Date.now(),
+      teamAName: state.teamAName,
+      teamBName: state.teamBName,
+      raceTo: state.raceTo,
+      streakLimit: state.streakLimit,
+      settings: deepClone(state.settings || { autoSort:false }),
+      teams: {
+        A: { players: keepA, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+        B: { players: keepB, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+      },
+      current: { matchNo: 1, gameA: 0, gameB: 0, finished: false, winner: null },
+      log: [],
+      raffle: { count: 1, winners: [] }
+    };
+
+    saveState();
+    $("logList").innerHTML = "";
+    renderAll();
+    toast("已重开整场比赛");
+  }
+
+  async function backToSetupDropProgress() {
+    if (!state) return;
+    const ok = await confirmUI(
+      "返回设置会丢弃当前比赛进度，但会把“队名/抢几/自爆/名单（含分数）”带回设置页。",
+      "确认返回设置？",
+      "返回设置",
+      "取消"
+    );
+    if (!ok) return;
+
+    $("teamAName").value = state.teamAName;
+    $("teamBName").value = state.teamBName;
+    $("raceToInput").value = state.raceTo;
+    $("streakLimitInput").value = state.streakLimit;
+    $("autoSortSeed").checked = !!(state.settings?.autoSort);
+
+    $("teamAPlayers").value = playersToLines(state.teams.A.players);
+    $("teamBPlayers").value = playersToLines(state.teams.B.players);
+
+    localStorage.removeItem(STORAGE_KEY);
+    state = null;
+    history = [];
+    $("logList").innerHTML = "";
+    showSetupOnly();
+    toast("已返回设置");
+  }
+
+  async function clearStorage() {
+    const ok = await confirmUI(
+      "清空浏览器里保存的状态（不会影响你的文件）。清空后刷新页面会回到初始状态。",
+      "确认清空本地保存？",
+      "清空",
+      "取消"
+    );
+    if (!ok) return;
+    localStorage.removeItem(STORAGE_KEY);
+    toast("已清空本地保存（可刷新重新开始）");
+  }
+
+  // ---- 抽奖 ----
+  function getAllParticipants() {
+    const all = [];
+    ["A","B"].forEach(k => state.teams[k].players.forEach(p => all.push({ id:p.id, name:p.name, teamKey:k })));
+    return all;
+  }
+
+  function renderRaffle() {
+    if (!state) { $("raffleResult").innerHTML = ""; return; }
+    const winners = state.raffle?.winners || [];
+    if (!winners.length) {
+      $("raffleResult").innerHTML = `<span class="dim">暂无（点击“抽取参与奖”）</span>`;
+      return;
+    }
+    $("raffleResult").innerHTML = winners.map((w, i) =>
+      `${String(i+1).padStart(2,"0")}）<b>${escapeHtml(w.name)}</b> <span class="dim">（${escapeHtml(teamLabel(w.teamKey))}）</span>`
+    ).join("<br/>");
+  }
+
+  function drawRaffle(reRoll=false) {
+    if (!state) return;
+    const all = getAllParticipants();
+    if (!all.length) return;
+
+    const count = clamp(Number($("raffleCount").value || 1), 1, all.length);
+    state.raffle = state.raffle || { count: 1, winners: [] };
+    state.raffle.count = count;
+
+    const pool = all.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    state.raffle.winners = pool.slice(0, count);
+
+    saveState();
+    renderRaffle();
+    toast(reRoll ? "已重新抽奖" : "已抽出参与奖");
+  }
+
+  // ---- Rendering ----
+  function showSetupOnly() {
+    $("setupCard").classList.remove("hidden");
+    $("matchCard").classList.add("hidden");
+  }
+  function showMatchOnly() {
+    $("setupCard").classList.add("hidden");
+    $("matchCard").classList.remove("hidden");
+  }
+
+  function renderRosters() {
+    const renderOne = (teamKey, elId, titleId) => {
+      const t = state.teams[teamKey];
+      const list = $(elId);
+      list.innerHTML = "";
+
+      const reasonMap = new Map();
+      for (const e of (t.eliminated || [])) reasonMap.set(e.id, e.reason);
+
+      $(titleId).textContent = `${teamLabel(teamKey)} 对战表`;
+
+      for (let i=0;i<t.players.length;i++){
+        const p = t.players[i];
+        const row = document.createElement("div");
+        row.className = "playerRow";
+
+        const out = i < t.pos;
+        const active = i === t.pos && !isTeamOut(teamKey);
+
+        if (out) row.classList.add("out");
+        if (active) row.classList.add("active");
+
+        const left = document.createElement("div");
+        left.className = "playerLeft";
+
+        const idx = document.createElement("div");
+        idx.className = "playerIndex";
+        idx.textContent = String(i + 1).padStart(2, "0");
+
+        const nm = document.createElement("div");
+        nm.className = "playerName";
+        nm.textContent = p.name;
+        nm.title = p.name; // 悬停显示全名
+        nm.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const ok = await copyText(p.name);
+          if (ok) toast(`已复制：${p.name}`);
+          else prompt("复制失败（可能浏览器限制）。请手动复制：", p.name);
+        });
+
+        left.appendChild(idx);
+        left.appendChild(nm);
+
+        const badges = document.createElement("div");
+        badges.className = "badges";
+
+        const addBadge = (cls, text) => {
+          const b = document.createElement("span");
+          b.className = "badge" + (cls ? (" " + cls) : "");
+          b.textContent = text;
+          badges.appendChild(b);
+        };
+
+        if (active) addBadge("good", "出战");
+        if (p.isTaisho) addBadge("warn", "大将");
+        if (isNum(p.seed)) addBadge("", `分数 ${p.seed}`);
+        addBadge("", `局胜 ${p.stats.gamesWon}`);
+
+        if (out) {
+          const reason = reasonMap.get(p.id) || "淘汰";
+          addBadge("bad", reason.includes("自爆") ? "自爆" : "败北");
+        } else if (!active) {
+          addBadge("", "待命");
+        }
+
+        row.appendChild(left);
+        row.appendChild(badges);
+        list.appendChild(row);
+      }
+    };
+
+    renderOne("A", "rosterA", "rosterTitleA");
+    renderOne("B", "rosterB", "rosterTitleB");
+  }
+
+  function renderMatchUI() {
+    $("showTeamA").textContent = state.teamAName;
+    $("showTeamB").textContent = state.teamBName;
+
+    $("raceTo").textContent = state.raceTo;
+
+    if (state.streakLimit <= 0) {
+      $("pillExplode").style.opacity = 0.55;
+      $("streakLimitShow").textContent = "关闭";
+    } else {
+      $("pillExplode").style.opacity = 1;
+      $("streakLimitShow").textContent = String(state.streakLimit);
+    }
+
+    const explodeLine = state.streakLimit <= 0
+      ? "自爆规则关闭"
+      : `连赢${state.streakLimit}人且非大将 → 自爆离场`;
+
+    $("midRule").innerHTML =
+      `任意一方先到 ${state.raceTo} 局即赢下此“对手”。<br/>` +
+      `赢者留场；败者淘汰；${explodeLine}。`;
+
+    $("ruleLine").innerHTML =
+      `规则：每场 <b>抢${state.raceTo}局</b>；赢家留场；` +
+      (state.streakLimit <= 0
+        ? `已关闭自爆规则；`
+        : `任意选手 <b>连赢${state.streakLimit}个人后自爆离场</b>；`) +
+      `每队最后一位 <b>大将</b> 不受自爆限制。`;
+
+    const aP = getActivePlayer("A");
+    const bP = getActivePlayer("B");
+
+    $("activeA").textContent = aP ? aP.name : "（已出局）";
+    $("activeB").textContent = bP ? bP.name : "（已出局）";
+
+    $("metaA").textContent = `连胜击败数：${state.teams.A.activeStreak} ｜ 身份：${aP ? (aP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${aP ? aP.stats.gamesWon : 0}`;
+    $("metaB").textContent = `连胜击败数：${state.teams.B.activeStreak} ｜ 身份：${bP ? (bP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${bP ? bP.stats.gamesWon : 0}`;
+
+    $("scoreA").textContent = state.current.gameA;
+    $("scoreB").textContent = state.current.gameB;
+
+    $("matchNo").textContent = state.current.matchNo;
+    $("remainA").textContent = teamRemaining("A");
+    $("remainB").textContent = teamRemaining("B");
+
+    $("btnEndMatch").disabled = !canEndMatch() || state.current.finished;
+
+    const disableScore = state.current.finished || isTeamOut("A") || isTeamOut("B");
+    $("btnAPlus").disabled = disableScore;
+    $("btnAMinus").disabled = disableScore;
+    $("btnBPlus").disabled = disableScore;
+    $("btnBMinus").disabled = disableScore;
+
+    renderRosters();
+
+    const m = computeMVP();
+    $("mvpShort").textContent = m.short;
+    $("mvpLong").textContent = m.text;
+
+    if (state.raffle?.count) $("raffleCount").value = state.raffle.count;
+    renderRaffle();
+
+    const banner = $("finishBanner");
+    if (state.current.finished) {
+      const w = teamLabel(state.current.winner);
+      const l = teamLabel(opp(state.current.winner));
+      banner.classList.remove("hidden");
+      banner.innerHTML =
+        `🏁 <b>比赛结束</b>：<span class="hlGood">${escapeHtml(w)}</span> 获胜；` +
+        `<span class="hlBad">${escapeHtml(l)}</span> 全员出局。<br/>` +
+        `<span class="dim">对战场数：${state.current.matchNo}｜红方胜场：${state.teams.A.matchWins}｜白方胜场：${state.teams.B.matchWins}</span>` +
+        `<br/><span class="dim">MVP：${escapeHtml(m.text)}</span>`;
+    } else {
+      banner.classList.add("hidden");
+      banner.innerHTML = "";
+    }
+  }
+
+  function renderAll() {
+    showMatchOnly();
+    renderMatchUI();
+  }
+
+  // ---- Setup helpers ----
+  function sortWritebackBoth() {
+    let A = linesToPlayers($("teamAPlayers").value);
+    let B = linesToPlayers($("teamBPlayers").value);
+    if (A.length) A = sortPlayersBySeed(A);
+    if (B.length) B = sortPlayersBySeed(B);
+    $("teamAPlayers").value = playersToLines(A);
+    $("teamBPlayers").value = playersToLines(B);
+    toast("已按分数整理并写回（分数越大越靠后）");
+  }
+
+  // ---- Events ----
+  $("btnStart").addEventListener("click", () => {
+    const newState = makeNewStateFromSetup();
+    if (!newState) return;
+
+    history = [];
+    state = newState;
+    saveState();
+
+    const aCount = state.teams.A.players.length;
+    const bCount = state.teams.B.players.length;
+    state.log = [];
+    $("logList").innerHTML = "";
+    addLog(
+      `<b>开赛：</b>${escapeHtml(state.teamAName)}（${aCount}人） vs ${escapeHtml(state.teamBName)}（${bCount}人）` +
+      `，抢${state.raceTo}局，${state.streakLimit<=0 ? "关闭自爆" : `连赢${state.streakLimit}人自爆`}（大将除外）。`
+    );
+
+    saveState();
+    renderAll();
+    toast("已开始比赛");
+  });
+
+  $("btnLoadDemo").addEventListener("click", () => {
+    $("teamAName").value = "床国";
+    $("teamBName").value = "狼国";
+    $("raceToInput").value = 3;
+    $("streakLimitInput").value = 3;
+    $("autoSortSeed").checked = true;
+    $("teamAPlayers").value = ["红1 800","红2 900","红3 1100","红4 1200","红5 1300","红6 1400","红7 1500","红8 1700"].join("\n");
+    $("teamBPlayers").value = ["白1 700","白2 850","白3 1000","白4 1050","白5 1250","白6 1350","白7 1600","白8 1800"].join("\n");
+    toast("已填入示例名单（最后一位会自动作为大将）");
+  });
+
+  $("btnSortWriteback").addEventListener("click", () => sortWritebackBoth());
+
+  $("btnSwap").addEventListener("click", () => {
+    const aName = $("teamAName").value;
+    const bName = $("teamBName").value;
+    const aList = $("teamAPlayers").value;
+    const bList = $("teamBPlayers").value;
+    $("teamAName").value = bName;
+    $("teamBName").value = aName;
+    $("teamAPlayers").value = bList;
+    $("teamBPlayers").value = aList;
+    toast("已互换红白");
+  });
+
+  $("btnUndo").addEventListener("click", () => undo());
+  $("btnReset").addEventListener("click", () => resetAllKeepRoster());
+  $("btnBackSetup").addEventListener("click", () => backToSetupDropProgress());
+
+  $("btnAPlus").addEventListener("click", () => addGame("A", +1));
+  $("btnAMinus").addEventListener("click", () => addGame("A", -1));
+  $("btnBPlus").addEventListener("click", () => addGame("B", +1));
+  $("btnBMinus").addEventListener("click", () => addGame("B", -1));
+  $("btnEndMatch").addEventListener("click", () => endMatch());
+
+  $("btnCopyLog").addEventListener("click", async () => {
+    const text = (state?.log || [])
+      .map(item => item.html
+        .replace(/<br\s*\/?>/g, "\n")
+        .replace(/<[^>]*>/g, "")
+        .replace(/&nbsp;/g," ")
+        .replace(/&amp;/g,"&")
+        .replace(/&lt;/g,"<")
+        .replace(/&gt;/g,">")
+        .replace(/&quot;/g,'"')
+        .replace(/&#039;/g,"'")
+      )
+      .join("\n\n");
+
+    const ok = await copyText(text);
+    if (ok) toast("日志已复制到剪贴板");
+    else prompt("复制失败（可能浏览器限制）。请手动复制：", text);
+  });
+
+  $("btnClearLog").addEventListener("click", async () => {
+    if (!state) return;
+    const ok = await confirmUI("清空日志？（不会影响比分和进度）", "确认清空日志？", "清空", "取消");
+    if (!ok) return;
+    pushHistory();
+    state.log = [];
+    saveState();
+    rebuildLogDOM();
+    toast("已清空日志");
+  });
+
+  $("btnClearStorage").addEventListener("click", () => clearStorage());
+
+  // 抽奖
+  $("btnRaffle").addEventListener("click", () => {
+    if (!state) { toast("请先开始比赛或恢复比赛"); return; }
+    pushHistory();
+    drawRaffle(false);
+    renderAll();
+  });
+  $("btnRaffleReroll").addEventListener("click", () => {
+    if (!state) { toast("请先开始比赛或恢复比赛"); return; }
+    pushHistory();
+    drawRaffle(true);
+    renderAll();
+  });
+  $("btnRaffleClear").addEventListener("click", async () => {
+    if (!state) return;
+    const ok = await confirmUI("清空抽奖结果？", "确认清空？", "清空", "取消");
+    if (!ok) return;
+    pushHistory();
+    state.raffle = state.raffle || { count: 1, winners: [] };
+    state.raffle.winners = [];
+    saveState();
+    renderRaffle();
+    toast("已清空抽奖结果");
+  });
+
+  // keyboard shortcuts
+  window.addEventListener("keydown", (e) => {
+    if (!state) return;
+    if (modal.resolve) return;
+    if (e.key === "a" || e.key === "A") { e.preventDefault(); addGame("A", +1); }
+    if (e.key === "l" || e.key === "L") { e.preventDefault(); addGame("B", +1); }
+    if (e.key === "Backspace") { e.preventDefault(); undo(); }
+  }, { passive:false });
+
+  // ---- Boot ----
+  const loaded = loadState();
+  if (loaded) {
+    state = loaded;
+    history = [];
+    $("setupCard").classList.add("hidden");
+    $("matchCard").classList.remove("hidden");
+    rebuildLogDOM();
+    renderMatchUI();
+    toast("已从本地保存恢复比赛");
+  } else {
+    showSetupOnly();
+  }
+})();
+</script>
+</body>
+</html>
