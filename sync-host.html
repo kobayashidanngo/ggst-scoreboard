@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>主持人同步台（房间号+主持码）</title>
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"PingFang SC","Microsoft YaHei",Arial;background:#0b0f16;color:#eaf0f7;}
+    .wrap{max-width:980px;margin:0 auto;padding:16px;}
+    .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px;margin:12px 0;}
+    h1{font-size:18px;margin:0 0 10px;}
+    h2{font-size:14px;margin:0 0 10px;color:#dbe7f3;}
+    label{display:block;font-size:12px;color:#9fb0c3;margin:10px 0 6px;}
+    input,button{font:inherit}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#eaf0f7;outline:none}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btnbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    button{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#eaf0f7;cursor:pointer;font-weight:700}
+    button.primary{background:rgba(40,209,124,.16);border-color:rgba(40,209,124,.35)}
+    button.danger{background:rgba(255,92,122,.14);border-color:rgba(255,92,122,.32)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);font-size:12px;color:#9fb0c3}
+    .pill b{color:#eaf0f7}
+    .muted{color:#9fb0c3;font-size:12px;line-height:1.6;white-space:pre-line}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:center}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>主持人同步台（共享给任意主持人：房间号 + 主持码）</h1>
+  <div class="muted">
+用法：主持人同时打开两个页面：
+1）index.html（正常计分）
+2）sync-host.html（本页负责：同步到云端、开/锁每局投票）
+
+只要在同一个 GitHub Pages 域名下，本页就能监听 index.html 写入的 localStorage。
+  </div>
+
+  <div class="card">
+    <h2>① 连接设置</h2>
+    <div class="row">
+      <div>
+        <label>房间号（公开）</label>
+        <input id="roomId" placeholder="例如：ggst_0308"/>
+      </div>
+      <div>
+        <label>主持码（私下发给主持人们）</label>
+        <input id="hostCode" placeholder="建议 10-16 位随机字符串"/>
+        <div class="btnbar" style="margin-top:8px;">
+          <button id="btnGen">生成主持码</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <div>
+        <label>对战表 localStorage Key（你用我给的 v5 通常是这个）</label>
+        <input id="lsKey" value="scoreboard_state_v5_sideSwapUI"/>
+        <div class="muted">如果你不确定：打开 index.html 计一次分，然后 F12 → Application → Local Storage 看 key 名。</div>
+      </div>
+      <div>
+        <label>分享给观众的围观链接</label>
+        <input id="watchLink" readonly />
+        <div class="muted">复制后发群里即可（观众不需要主持码）。</div>
+      </div>
+    </div>
+
+    <div class="btnbar">
+      <button class="primary" id="btnConnect">连接房间 + 开始同步</button>
+      <button class="danger" id="btnStop">停止同步</button>
+      <span class="pill">状态：<b id="status">未连接</b></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 当前比赛快照（从 localStorage 读取）</h2>
+    <div class="grid3">
+      <div class="pill">场次：<b id="matchNo">-</b></div>
+      <div class="pill">比分（A/B）：<b id="scoreAB">-</b></div>
+      <div class="pill">左右（1P/2P）：<b id="lrTeam">-</b></div>
+    </div>
+    <div class="muted" id="snapshotText" style="margin-top:10px;">等待读取…</div>
+  </div>
+
+  <div class="card">
+    <h2>③ 每局投票（主持人开盘/锁票；加分自动锁票）</h2>
+    <div class="pill">投票状态：<b id="pollStatus">未开启</b></div>
+    <div class="pill">投票标题：<b id="pollTitle">-</b></div>
+    <div class="pill">票数：<b id="pollCounts">-</b></div>
+
+    <div class="btnbar" style="margin-top:10px;">
+      <button class="primary" id="btnOpenPoll">开本局投票</button>
+      <button id="btnClosePoll">手动锁票</button>
+      <button id="btnRefreshCounts">刷新票数</button>
+    </div>
+
+    <div class="muted" style="margin-top:10px;">
+规则：点“开本局投票”后观众可投票。
+当你在 index.html 里给任意一边 +1 局，本页检测到比分变化 → 自动锁票并记胜者（左/右）。
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/** ★★★ 替换成你自己的 ★★★ */
+const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
+/** ★★★ 结束 ★★★ */
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const $ = (id)=>document.getElementById(id);
+const setStatus = (t)=>$("status").textContent=t;
+
+let syncing = false;
+let currentRoom = "";
+let currentLsKey = "";
+let hostCode = "";
+
+let lastState = null;
+let pollCache = {}; // {id, open, title, winnerSide...}
+
+function safeParse(s){ try{return JSON.parse(s)}catch(e){return null} }
+
+function lrFromState(state){
+  const side = state?.side || {p1:"A", p2:"B"};
+  const leftKey = side.p1 || "A";
+  const rightKey = side.p2 || "B";
+  const teamA = state?.teamAName || "队伍A";
+  const teamB = state?.teamBName || "队伍B";
+  return {
+    leftKey, rightKey,
+    leftName: leftKey==="A" ? teamA : teamB,
+    rightName: rightKey==="A" ? teamA : teamB
+  };
+}
+
+function readState(){
+  const raw = localStorage.getItem(currentLsKey);
+  return raw ? safeParse(raw) : null;
+}
+
+function renderSnapshot(state){
+  if(!state){
+    $("matchNo").textContent="-";
+    $("scoreAB").textContent="-";
+    $("lrTeam").textContent="-";
+    $("snapshotText").textContent="没读到对战表状态：请先打开 index.html 并开始比赛（或至少点一次+1让它写入 localStorage）。";
+    return;
+  }
+  const lr = lrFromState(state);
+  $("matchNo").textContent = state.current?.matchNo ?? "-";
+  $("scoreAB").textContent = `${state.current?.gameA ?? 0} / ${state.current?.gameB ?? 0}`;
+  $("lrTeam").textContent = `左(1P)=${lr.leftName} ｜ 右(2P)=${lr.rightName}`;
+  $("snapshotText").textContent =
+    `赛事：${state.eventTitle || "-"}\n`+
+    `A=${state.teamAName}，B=${state.teamBName}`;
+}
+
+function autoPollTitle(state){
+  const matchNo = state?.current?.matchNo ?? 1;
+  const gameNo = (state?.current?.gameA ?? 0) + (state?.current?.gameB ?? 0) + 1;
+  return `第${matchNo}场 第${gameNo}局：哪边赢？`;
+}
+
+function newPoll(state){
+  return {
+    id: "poll_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,6),
+    open: true,
+    title: autoPollTitle(state),
+    createdAt: Date.now()
+  };
+}
+
+function detectWinnerSide(oldState, newState){
+  if(!oldState || !newState) return null;
+  const oldA = oldState.current?.gameA ?? 0;
+  const oldB = oldState.current?.gameB ?? 0;
+  const newA = newState.current?.gameA ?? 0;
+  const newB = newState.current?.gameB ?? 0;
+
+  let scoredTeam = null;
+  if(newA > oldA) scoredTeam = "A";
+  if(newB > oldB) scoredTeam = "B";
+  if(!scoredTeam) return null;
+
+  const lr = lrFromState(newState);
+  return (scoredTeam === lr.leftKey) ? "left" : "right";
+}
+
+async function rpcUpsert(roomId, hostCode, stateJson, pollJson){
+  const { error } = await sb.rpc("host_upsert_room", {
+    p_room_id: roomId,
+    p_host_code: hostCode,
+    p_state: stateJson,
+    p_poll: pollJson
+  });
+  if(error) throw error;
+}
+
+function renderPoll(){
+  if(!pollCache || !pollCache.id){
+    $("pollStatus").textContent="未开启";
+    $("pollTitle").textContent="-";
+    $("pollCounts").textContent="-";
+    return;
+  }
+  $("pollStatus").textContent = pollCache.open ? "开启中" : `已锁票（胜者：${pollCache.winnerSide || "-"}）`;
+  $("pollTitle").textContent = pollCache.title || "-";
+}
+
+async function refreshCounts(){
+  if(!currentRoom || !pollCache?.id){ $("pollCounts").textContent="-"; return; }
+  const pollId = pollCache.id;
+
+  const [l, r] = await Promise.all([
+    sb.from("votes").select("id", { count:"exact", head:true }).eq("room_id", currentRoom).eq("poll_id", pollId).eq("side","left"),
+    sb.from("votes").select("id", { count:"exact", head:true }).eq("room_id", currentRoom).eq("poll_id", pollId).eq("side","right"),
+  ]);
+  if(l.error || r.error){ $("pollCounts").textContent="读取失败"; return; }
+  $("pollCounts").textContent = `左=${l.count||0} ｜ 右=${r.count||0}`;
+}
+
+function updateWatchLink(){
+  const rid = $("roomId").value.trim();
+  const url = new URL(location.href);
+  url.pathname = url.pathname.replace(/\/[^\/]*$/, "/watch.html");
+  url.search = rid ? ("?room=" + encodeURIComponent(rid)) : "";
+  $("watchLink").value = url.toString();
+}
+
+$("roomId").addEventListener("input", updateWatchLink);
+
+$("btnGen").addEventListener("click", ()=>{
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let s = "";
+  for(let i=0;i<14;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  $("hostCode").value = s;
+});
+
+$("btnConnect").addEventListener("click", async ()=>{
+  currentRoom = $("roomId").value.trim();
+  hostCode = $("hostCode").value.trim();
+  currentLsKey = $("lsKey").value.trim();
+  if(!currentRoom) return alert("先填房间号");
+  if(!hostCode) return alert("先填主持码");
+  if(!currentLsKey) return alert("先填 localStorage Key");
+
+  updateWatchLink();
+
+  const st = readState();
+  renderSnapshot(st);
+
+  try{
+    // 第一次：创建房间或验证主持码，并写入当前 state/poll
+    await rpcUpsert(currentRoom, hostCode, st || {}, pollCache || {});
+    syncing = true;
+    setStatus("已连接 & 同步中");
+    lastState = st || null;
+
+    // 监听 index.html 的 localStorage 更新
+    window.addEventListener("storage", async (e)=>{
+      if(!syncing) return;
+      if(e.storageArea !== localStorage) return;
+      if(e.key !== currentLsKey) return;
+
+      const newState = safeParse(e.newValue);
+      renderSnapshot(newState);
+
+      try{
+        // 如果投票开着，且比分变化，则自动锁票
+        if(pollCache?.open){
+          const winnerSide = detectWinnerSide(lastState, newState);
+          if(winnerSide){
+            pollCache = { ...pollCache, open:false, closedAt:Date.now(), winnerSide };
+            renderPoll();
+            await refreshCounts();
+          }
+        }
+        await rpcUpsert(currentRoom, hostCode, newState || {}, pollCache || {});
+        lastState = newState || null;
+      }catch(err){
+        console.error(err);
+        setStatus("同步失败（看控制台）");
+      }
+    });
+
+    renderPoll();
+    await refreshCounts();
+    alert("连接成功！把 watchLink 发给观众即可。");
+  }catch(err){
+    alert("连接失败：" + (err.message || err));
+  }
+});
+
+$("btnStop").addEventListener("click", ()=>{
+  syncing = false;
+  setStatus("已停止");
+});
+
+$("btnOpenPoll").addEventListener("click", async ()=>{
+  if(!syncing) return alert("先连接房间");
+  const st = readState();
+  pollCache = newPoll(st);
+  renderPoll();
+  try{
+    await rpcUpsert(currentRoom, hostCode, st || {}, pollCache || {});
+    await refreshCounts();
+  }catch(err){
+    alert("开投票失败：" + (err.message || err));
+  }
+});
+
+$("btnClosePoll").addEventListener("click", async ()=>{
+  if(!syncing) return alert("先连接房间");
+  if(!pollCache?.id) return alert("还没开投票");
+  const st = readState();
+  pollCache = { ...pollCache, open:false, closedAt:Date.now() };
+  renderPoll();
+  try{
+    await rpcUpsert(currentRoom, hostCode, st || {}, pollCache || {});
+    await refreshCounts();
+  }catch(err){
+    alert("锁票失败：" + (err.message || err));
+  }
+});
+
+$("btnRefreshCounts").addEventListener("click", refreshCounts);
+
+// 支持 URL：sync-host.html?room=xxx
+(()=>{
+  const p = new URLSearchParams(location.search);
+  const r = p.get("room");
+  if(r){ $("roomId").value = r; updateWatchLink(); }
+  updateWatchLink();
+})();
+</script>
+</body>
+</html>

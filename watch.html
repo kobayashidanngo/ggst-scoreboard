@@ -1,0 +1,256 @@
+!doctype html
+html lang=zh-CN
+head
+  meta charset=utf-8
+  meta name=viewport content=width=device-width,initial-scale=1
+  title观众围观互动（实时比分 + 每局投票）title
+  style
+    body{margin0;font-familysystem-ui,-apple-system,Segoe UI,Roboto,PingFang SC,Microsoft YaHei,Arial;background#0b0f16;color#eaf0f7;}
+    .wrap{max-width980px;margin0 auto;padding16px;}
+    .card{backgroundrgba(255,255,255,.04);border1px solid rgba(255,255,255,.10);border-radius14px;padding14px;margin12px 0;}
+    h1{font-size18px;margin0 0 10px;}
+    .muted{color#9fb0c3;font-size12px;line-height1.6}
+    .pill{displayinline-flex;gap8px;align-itemscenter;padding6px 10px;border-radius999px;backgroundrgba(255,255,255,.06);border1px solid rgba(255,255,255,.10);font-size12px;color#9fb0c3;margin4px 6px 4px 0}
+    .pill b{color#eaf0f7}
+    .row{displaygrid;grid-template-columns1fr 1fr;gap12px}
+    .big{font-size22px;font-weight900}
+    button{padding10px 12px;border-radius12px;border1px solid rgba(255,255,255,.14);backgroundrgba(255,255,255,.06);color#eaf0f7;cursorpointer;font-weight800}
+    button.primary{backgroundrgba(40,209,124,.16);border-colorrgba(40,209,124,.35)}
+    buttondisabled{opacity.5;cursornot-allowed}
+    input{width100%;padding10px;border-radius10px;border1px solid rgba(255,255,255,.12);backgroundrgba(0,0,0,.25);color#eaf0f7;outlinenone}
+    .bar{height10px;border-radius999px;backgroundrgba(255,255,255,.08);overflowhidden}
+    .fill{height100%;backgroundrgba(40,209,124,.45);width50%}
+  style
+head
+body
+div class=wrap
+  h1观众围观互动（实时比分 + 每局投票）h1
+  div class=muted打开方式：bwatch.htmlroom=房间号b（不需要主持码）。div
+
+  div class=card
+    div class=row
+      div
+        div class=muted房间号div
+        input id=roomId placeholder=例如：ggst_0308
+      div
+      div style=displayflex;align-itemsflex-end;gap10px
+        button class=primary id=btnJoin加入button
+        span class=pill状态：b id=status未加入bspan
+      div
+    div
+  div
+
+  div class=card id=viewCard style=displaynone
+    div class=pill赛事：b id=eventTitle-bdiv
+    div class=pill场次：b id=matchNo-bdiv
+    div class=pill抢几：b id=raceTo-bdiv
+    div class=pill自爆：b id=streak-bdiv
+
+    div class=row style=margin-top12px
+      div
+        div class=muted左侧（1P）div
+        div class=big id=leftTeam-div
+        div class=muted出战：b id=leftPlayer-bdiv
+        div class=big id=leftScore0div
+      div
+      div
+        div class=muted右侧（2P）div
+        div class=big id=rightTeam-div
+        div class=muted出战：b id=rightPlayer-bdiv
+        div class=big id=rightScore0div
+      div
+    div
+  div
+
+  div class=card id=pollCard style=displaynone
+    div class=pill投票：b id=pollStatus-bdiv
+    div class=pill标题：b id=pollTitle-bdiv
+    div class=pill票数：b id=pollCounts-bdiv
+    div class=bar style=margin10px 0div class=fill id=pollBardivdiv
+
+    div class=row
+      button class=primary id=btnVoteLeft投左边赢button
+      button class=primary id=btnVoteRight投右边赢button
+    div
+
+    div class=muted style=margin-top10px id=pollHint-div
+  div
+div
+
+script src=httpscdn.jsdelivr.netnpm@supabasesupabase-js@2script
+script
+ ★★★ 替换成你自己的 ★★★ 
+const SUPABASE_URL = PASTE_YOUR_SUPABASE_URL_HERE;
+const SUPABASE_ANON_KEY = PASTE_YOUR_SUPABASE_ANON_KEY_HERE;
+ ★★★ 结束 ★★★ 
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = (id)=document.getElementById(id);
+
+let roomId = ;
+let timer = null;
+let lastUpdatedAt = ;
+let state = null;
+let poll = null;
+
+function voterId(){
+  let id = localStorage.getItem(voter_id);
+  if(!id){
+    id = (crypto && crypto.randomUUID)  crypto.randomUUID()  (v_ + Date.now().toString(36) + Math.random().toString(36).slice(2,8));
+    localStorage.setItem(voter_id, id);
+  }
+  return id;
+}
+
+function lrFromState(st){
+  const side = st.side  {p1A, p2B};
+  const leftKey = side.p1  A;
+  const rightKey = side.p2  B;
+  const teamA = st.teamAName  队伍A;
+  const teamB = st.teamBName  队伍B;
+  const leftName = leftKey===A  teamA  teamB;
+  const rightName = rightKey===A  teamA  teamB;
+
+  const scoreA = st.current.gameA  0;
+  const scoreB = st.current.gameB  0;
+  const leftScore = leftKey===A  scoreA  scoreB;
+  const rightScore = rightKey===A  scoreA  scoreB;
+
+  const leftPlayer = st.teams.[leftKey].players.[st.teams.[leftKey].pos].name
+     (st.teams.[leftKey].pos = (st.teams.[leftKey].players.length0)  （已出局）  -);
+
+  const rightPlayer = st.teams.[rightKey].players.[st.teams.[rightKey].pos].name
+     (st.teams.[rightKey].pos = (st.teams.[rightKey].players.length0)  （已出局）  -);
+
+  return { leftName,rightName,leftScore,rightScore,leftPlayer,rightPlayer };
+}
+
+function render(){
+  if(!state) return;
+
+  $(viewCard).style.display = block;
+  $(eventTitle).textContent = state.eventTitle  -;
+  $(matchNo).textContent = state.current.matchNo  -;
+  $(raceTo).textContent = state.raceTo  -;
+  $(streak).textContent = (state.streakLimit=0)  关闭  String(state.streakLimit);
+
+  const lr = lrFromState(state);
+  $(leftTeam).textContent = lr.leftName;
+  $(rightTeam).textContent = lr.rightName;
+  $(leftPlayer).textContent = lr.leftPlayer;
+  $(rightPlayer).textContent = lr.rightPlayer;
+  $(leftScore).textContent = lr.leftScore;
+  $(rightScore).textContent = lr.rightScore;
+
+  renderPollUI(lr);
+}
+
+async function refreshCounts(){
+  if(!poll  !poll.id){ $(pollCounts).textContent=-; return {lc0,rc0}; }
+  const pollId = poll.id;
+
+  const [l, r] = await Promise.all([
+    sb.from(votes).select(id, { countexact, headtrue }).eq(room_id, roomId).eq(poll_id, pollId).eq(side,left),
+    sb.from(votes).select(id, { countexact, headtrue }).eq(room_id, roomId).eq(poll_id, pollId).eq(side,right),
+  ]);
+
+  const lc = l.count  0, rc = r.count  0;
+  $(pollCounts).textContent = `左=${lc} ｜ 右=${rc}`;
+
+  const total = lc + rc;
+  const pct = total0  (lctotal100)  50;
+  $(pollBar).style.width = pct.toFixed(1) + %;
+  return {lc,rc};
+}
+
+function renderPollUI(lr){
+  if(!poll  !poll.id){
+    $(pollCard).style.display = none;
+    return;
+  }
+  $(pollCard).style.display = block;
+  $(pollTitle).textContent = poll.title  -;
+
+  if(poll.open){
+    $(pollStatus).textContent = 开启中（可投票）;
+    $(btnVoteLeft).disabled = false;
+    $(btnVoteRight).disabled = false;
+    $(btnVoteLeft).textContent = `投左边赢（${lr.leftName}）`;
+    $(btnVoteRight).textContent = `投右边赢（${lr.rightName}）`;
+    $(pollHint).textContent = 每个观众每局只能投一次。主持人加分后会自动锁票。;
+  }else{
+    $(pollStatus).textContent = `已锁票（胜者：${poll.winnerSide===left  左边  (poll.winnerSide===right  右边  -)}）`;
+    $(btnVoteLeft).disabled = true;
+    $(btnVoteRight).disabled = true;
+    $(btnVoteLeft).textContent = `左边（${lr.leftName}）`;
+    $(btnVoteRight).textContent = `右边（${lr.rightName}）`;
+    $(pollHint).textContent = 等待主持人开下一局投票…;
+  }
+}
+
+async function vote(side){
+  if(!poll  !poll.open){ alert(投票未开启); return; }
+  const { error } = await sb.from(votes).insert({
+    room_id roomId,
+    poll_id poll.id,
+    voter_id voterId(),
+    side
+  });
+  if(error){
+    alert(投票失败： + error.message);
+    return;
+  }
+  await refreshCounts();
+  alert(投票成功！);
+}
+
+$(btnVoteLeft).addEventListener(click, ()=vote(left));
+$(btnVoteRight).addEventListener(click, ()=vote(right));
+
+async function tick(){
+  if(!roomId) return;
+
+  const { data, error } = await sb.from(rooms)
+    .select(state_json,poll_json,updated_at)
+    .eq(id, roomId).limit(1);
+
+  if(error  !data  !data[0]){
+    $(status).textContent = 房间不存在  主持人未同步;
+    return;
+  }
+
+  const row = data[0];
+  if(row.updated_at !== lastUpdatedAt){
+    lastUpdatedAt = row.updated_at;
+    state = row.state_json  null;
+    poll = row.poll_json  null;
+    render();
+  } else {
+    poll = row.poll_json  poll;
+  }
+
+  if(poll && poll.id) await refreshCounts();
+}
+
+async function join(){
+  roomId = $(roomId).value.trim();
+  if(!roomId){ alert(先填房间号); return; }
+  $(status).textContent = 已加入（刷新中）;
+  $(viewCard).style.display = block;
+
+  clearInterval(timer);
+  await tick();
+  timer = setInterval(tick, 1200);
+}
+
+$(btnJoin).addEventListener(click, join);
+
+ 支持 URL：watch.htmlroom=xxx
+(()={
+  const p = new URLSearchParams(location.search);
+  const r = p.get(room);
+  if(r){ $(roomId).value = r; join(); }
+})();
+script
+body
+html
