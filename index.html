@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GGST 国战对战表</title>
+  <title>赛事对战表</title>
   <style>
     :root { --bg:#0b0f16; --card:#121a27; --muted:#9fb0c3; --text:#eaf0f7; --line:#223049; --good:#28d17c; --bad:#ff5c7a; --warn:#ffcc66; }
     *{ box-sizing:border-box; }
@@ -12,8 +12,6 @@
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC","Microsoft YaHei", Arial, sans-serif;
       min-height: 100vh;
-
-      /* 背景适配修复：多层渐变 + fixed，避免大屏断层 */
       background:
         radial-gradient(1200px 850px at 20% 8%, rgba(21,33,58,0.95) 0%, rgba(11,15,22,0) 70%),
         radial-gradient(1100px 800px at 82% 0%, rgba(16,29,54,0.85) 0%, rgba(11,15,22,0) 68%),
@@ -116,7 +114,7 @@
 
     .hlGood{ color: var(--good); font-weight:900; }
     .hlBad{ color: var(--bad); font-weight:900; }
-    .hlWarn{ color: var(--warn); font-weight:900; }
+    .hlWarn{ color:var(--warn); font-weight:900; }
 
     .rightCol{ display:flex; flex-direction:column; gap:14px; }
     .hidden{ display:none !important; }
@@ -148,10 +146,10 @@
     .rosterHead .hint{ font-size:11px; color:var(--muted); }
     .rosterList{ display:flex; flex-direction:column; gap:8px; }
 
-    /* ✅ 名字显示适配核心：名字区域有下限；badge 不够就换行到下一行 */
+    /* ✅ 名字显示适配：名字区域有下限；badge 不够就换行 */
     .playerRow{
       display:flex;
-      flex-wrap: wrap;     /* 允许换行 */
+      flex-wrap: wrap;
       row-gap: 6px;
       align-items:center;
       justify-content:space-between;
@@ -162,8 +160,8 @@
     }
     .playerLeft{
       display:flex; align-items:center; gap:10px;
-      flex: 1 1 260px;     /* 优先占空间 */
-      min-width: 220px;    /* 不被压到只剩1个字 */
+      flex: 1 1 260px;
+      min-width: 220px;
     }
     .playerIndex{
       flex: 0 0 26px;
@@ -174,13 +172,12 @@
     }
     .playerName{
       flex: 1 1 auto;
-      min-width: 10ch;                 /* 至少显示的字符宽度 */
-      max-width: clamp(14ch, 26vw, 34ch); /* 合理上限 */
+      min-width: 10ch;
+      max-width: clamp(14ch, 26vw, 34ch);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-
-      cursor: pointer;                 /* ✅ 点击复制 */
+      cursor: pointer;
       user-select: none;
     }
     .playerName:hover{
@@ -192,7 +189,7 @@
       max-width: 100%;
       display:flex;
       gap:6px;
-      flex-wrap: wrap;  /* badge 自己换行 */
+      flex-wrap: wrap;
       justify-content:flex-end;
     }
 
@@ -268,11 +265,11 @@
 <div class="wrap">
   <header>
     <div class="title">
-      <h1>GGST 国战对战表</h1>
+      <h1 id="pageTitle">赛事对战表</h1>
       <div class="sub" id="ruleLine">规则：每场 <b>抢3局</b>；赢家留场；任意选手 <b>连赢3个人后自爆离场</b>；每队最后一位 <b>大将</b> 不受自爆限制。</div>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-      <span class="pill">快捷键：<strong>A</strong> 红 +1局｜<strong>L</strong> 白 +1局｜<strong>Backspace</strong> 撤销</span>
+      <span class="pill" id="hotkeyHint">快捷键：<strong>A</strong> 左侧+1局｜<strong>L</strong> 右侧+1局｜<strong>Backspace</strong> 撤销</span>
       <button type="button" class="ghost" id="btnClearStorage" title="清空本地保存（不会删你的文件，只删浏览器保存的状态）">清空本地保存</button>
     </div>
   </header>
@@ -280,15 +277,36 @@
   <div class="row">
     <!-- Left -->
     <div class="card" id="setupCard">
-      <h2>① 填写队伍与选手（可选填排位分数；最后一位默认大将）</h2>
+      <h2>① 基础信息（兼容更多赛事）</h2>
 
       <div class="grid2">
         <div class="field">
-          <label>红队名称</label>
+          <label>比赛/赛事名称（显示在页面标题）</label>
+          <input type="text" id="eventTitle" value="GGST 国战对战表" />
+        </div>
+        <div class="field">
+          <label>位置抽签（1P/2P）</label>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.10); background:rgba(0,0,0,.12);">
+            <span class="pill" style="margin:0;">1P：<strong id="p1TeamName">-</strong></span>
+            <span class="pill" style="margin:0;">2P：<strong id="p2TeamName">-</strong></span>
+            <button type="button" id="btnDrawSides">随机抽签</button>
+            <button type="button" class="ghost" id="btnResetSides">恢复默认</button>
+          </div>
+          <div class="setupNote" style="margin-top:6px;">
+            用途：线下上机分配手柄位（1P/2P）。<b>比赛界面左边永远显示 1P、右边永远显示 2P</b>（更直观）。
+          </div>
+        </div>
+      </div>
+
+      <h2 style="margin-top:14px;">② 填写队伍与选手（可选填排位分数；最后一位默认大将）</h2>
+
+      <div class="grid2">
+        <div class="field">
+          <label>队伍A名称</label>
           <input type="text" id="teamAName" value="床国" />
         </div>
         <div class="field">
-          <label>白队名称</label>
+          <label>队伍B名称</label>
           <input type="text" id="teamBName" value="狼国" />
         </div>
       </div>
@@ -315,11 +333,11 @@
 
       <div class="grid2" style="margin-top:12px;">
         <div class="field">
-          <label>红队选手名单（每行一个；可写“名字 分数”/“名字|分数”/“名字,分数”）</label>
+          <label>队伍A 选手名单（每行一个；可写“名字 分数”/“名字|分数”/“名字,分数”）</label>
           <textarea id="teamAPlayers"></textarea>
         </div>
         <div class="field">
-          <label>白队选手名单（同上）</label>
+          <label>队伍B 选手名单（同上）</label>
           <textarea id="teamBPlayers"></textarea>
         </div>
       </div>
@@ -328,14 +346,14 @@
         <button type="button" class="primary" id="btnStart">开始比赛</button>
         <button type="button" id="btnLoadDemo">填入示例名单</button>
         <button type="button" id="btnSortWriteback">整理名单（按分数写回）</button>
-        <button type="button" id="btnSwap">红白互换</button>
+        <button type="button" id="btnSwap">A/B 互换</button>
       </div>
 
       <div class="setupNote" style="margin-top:10px;">
         1）名单顺序=上场顺序（上→下：先上场→后上场）。<br/>
         2）按分数排序：分数从小到大排列，<b>分数越大越靠后</b>；最后一位自动视为<b>大将</b>。<br/>
         3）自爆数填 0 即关闭自爆规则（大将始终不自爆）。<br/>
-        4）在对战表里<strong>点击选手名字可复制</strong>（也可悬停查看完整名字）。<br/>
+        4）对战表里<strong>点击选手名字可复制</strong>（悬停可看全名）。<br/>
       </div>
     </div>
 
@@ -345,8 +363,13 @@
           <span class="pill">第 <strong id="matchNo">1</strong> 场</span>
           <span class="pill">抢 <strong id="raceTo">3</strong> 局</span>
           <span class="pill" id="pillExplode">自爆：<strong id="streakLimitShow">3</strong></span>
-          <span class="pill">红剩余：<strong id="remainA">-</strong></span>
-          <span class="pill">白剩余：<strong id="remainB">-</strong></span>
+          <span class="pill">1P：<strong id="p1Show">-</strong></span>
+          <span class="pill">2P：<strong id="p2Show">-</strong></span>
+
+          <!-- ✅ 改为“左侧(1P)/右侧(2P)”剩余，更直观 -->
+          <span class="pill"><span id="remainLeftLabel">1P剩余</span>：<strong id="remainLeft">-</strong></span>
+          <span class="pill"><span id="remainRightLabel">2P剩余</span>：<strong id="remainRight">-</strong></span>
+
           <span class="pill">MVP：<strong id="mvpShort">-</strong></span>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -357,10 +380,11 @@
       </div>
 
       <div class="scoreboard">
-        <div class="teamBox" id="boxA">
+        <!-- 左侧：永远显示 1P -->
+        <div class="teamBox">
           <div class="teamName">
-            <div class="name" id="showTeamA">红队</div>
-            <div class="tag">红方</div>
+            <div class="name" id="showTeamA">队伍A</div>
+            <div class="tag" id="tagA">1P</div>
           </div>
           <div class="activePlayer" id="activeA">-</div>
           <div class="meta" id="metaA">连胜击败数：0 ｜ 身份：- ｜ 局胜：0</div>
@@ -370,8 +394,8 @@
               <div class="bigScore" id="scoreA">0</div>
             </div>
             <div class="controls">
-              <button type="button" class="primary" id="btnAPlus">红 +1局（A）</button>
-              <button type="button" id="btnAMinus">红 -1局</button>
+              <button type="button" class="primary" id="btnAPlus">左侧 +1局（A）</button>
+              <button type="button" id="btnAMinus">左侧 -1局</button>
             </div>
           </div>
         </div>
@@ -383,10 +407,11 @@
           <div id="finishBanner" class="finish hidden"></div>
         </div>
 
-        <div class="teamBox" id="boxB">
+        <!-- 右侧：永远显示 2P -->
+        <div class="teamBox">
           <div class="teamName">
-            <div class="name" id="showTeamB">白队</div>
-            <div class="tag">白方</div>
+            <div class="name" id="showTeamB">队伍B</div>
+            <div class="tag" id="tagB">2P</div>
           </div>
           <div class="activePlayer" id="activeB">-</div>
           <div class="meta" id="metaB">连胜击败数：0 ｜ 身份：- ｜ 局胜：0</div>
@@ -396,25 +421,25 @@
               <div class="bigScore" id="scoreB">0</div>
             </div>
             <div class="controls">
-              <button type="button" class="primary" id="btnBPlus">白 +1局（L）</button>
-              <button type="button" id="btnBMinus">白 -1局</button>
+              <button type="button" class="primary" id="btnBPlus">右侧 +1局（L）</button>
+              <button type="button" id="btnBMinus">右侧 -1局</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 可视化名单 -->
+      <!-- 可视化名单：左=1P，右=2P -->
       <div class="rosters">
         <div class="rosterCard">
           <div class="rosterHead">
-            <div class="title" id="rosterTitleA">红队 对战表</div>
+            <div class="title" id="rosterTitleA">1P 对战表</div>
             <div class="hint">上→下：先上场→后上场</div>
           </div>
           <div id="rosterA" class="rosterList"></div>
         </div>
         <div class="rosterCard">
           <div class="rosterHead">
-            <div class="title" id="rosterTitleB">白队 对战表</div>
+            <div class="title" id="rosterTitleB">2P 对战表</div>
             <div class="hint">上→下：先上场→后上场</div>
           </div>
           <div id="rosterB" class="rosterList"></div>
@@ -429,7 +454,7 @@
     <!-- Right -->
     <div class="rightCol">
       <div class="card">
-        <h2>② 比赛日志（自动记录每场结果/淘汰/自爆）</h2>
+        <h2>③ 比赛日志（自动记录每场结果/淘汰/自爆）</h2>
         <div class="log" id="logBox">
           <ol id="logList"></ol>
         </div>
@@ -440,13 +465,13 @@
       </div>
 
       <div class="card" id="mvpPrizeCard">
-        <h2>③ MVP 与参与奖抽奖</h2>
+        <h2>④ MVP 与参与奖抽奖</h2>
 
         <div class="kv" style="margin:6px 0 10px;">
           <div class="k">当前 MVP：</div>
           <div class="v" id="mvpLong">-</div>
         </div>
-        <div class="setupNote" id="mvpExplain" style="margin-bottom:12px;">
+        <div class="setupNote" style="margin-bottom:12px;">
           统计口径：全场累计“局胜”最多者；若并列，比赛结束后优先给获胜队；获胜队仍并列则并列 MVP。
         </div>
 
@@ -474,13 +499,13 @@
       </div>
 
       <div class="card">
-        <h2>④ 说明</h2>
+        <h2>⑤ 说明</h2>
         <div class="setupNote">
           <ul style="margin:0; padding-left:18px; line-height:1.75;">
-            <li>支持直接双击运行（离线可用）。</li>
+            <li>支持直接运行（离线可用），也可挂 GitHub Pages。</li>
             <li>浏览器会自动保存当前比赛状态，刷新页面不会丢。</li>
-            <li>名单展示：当前出战高亮；淘汰/自爆删除线变暗并标注原因。</li>
-            <li>点击对战表里的选手名字可复制。</li>
+            <li>对战表：当前出战高亮；淘汰/自爆删除线变暗；点击名字复制。</li>
+            <li><b>抽签后：比赛界面左边永远是 1P，右边永远是 2P</b>（比分按钮/名单/剩余人数全部同步）。</li>
           </ul>
         </div>
       </div>
@@ -506,7 +531,7 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = "ggst_nationwar_state_v3_full";
+  const STORAGE_KEY = "scoreboard_state_v5_sideSwapUI"; // ✅ 换个 key，避免你旧版缓存导致界面错乱
 
   const $ = (id) => document.getElementById(id);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -636,6 +661,33 @@
     return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
   }
 
+  // ---- Draft config (setup stage) ----
+  let draftSide = { p1: "A", p2: "B" };
+
+  function teamNameFromInputs(teamKey) {
+    const aName = $("teamAName").value.trim() || "队伍A";
+    const bName = $("teamBName").value.trim() || "队伍B";
+    return teamKey === "A" ? aName : bName;
+  }
+
+  function updateDraftSideUI() {
+    $("p1TeamName").textContent = teamNameFromInputs(draftSide.p1);
+    $("p2TeamName").textContent = teamNameFromInputs(draftSide.p2);
+  }
+
+  function resetDraftSide() {
+    draftSide = { p1: "A", p2: "B" };
+    updateDraftSideUI();
+    toast(`已恢复默认：1P=${teamNameFromInputs("A")}，2P=${teamNameFromInputs("B")}`);
+  }
+
+  function drawDraftSide() {
+    const flip = Math.random() < 0.5;
+    draftSide = flip ? { p1:"A", p2:"B" } : { p1:"B", p2:"A" };
+    updateDraftSideUI();
+    toast(`抽签结果：1P=${teamNameFromInputs(draftSide.p1)}，2P=${teamNameFromInputs(draftSide.p2)}（比赛界面会左右对调）`);
+  }
+
   // ---- State ----
   let state = null;
   let history = [];
@@ -649,7 +701,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      if (!obj || obj.version !== 3) return null;
+      if (!obj || obj.version !== 5) return null;
       return obj;
     } catch (e) {
       return null;
@@ -669,8 +721,9 @@
   }
 
   function makeNewStateFromSetup() {
-    const teamAName = $("teamAName").value.trim() || "红队";
-    const teamBName = $("teamBName").value.trim() || "白队";
+    const eventTitle = $("eventTitle").value.trim() || "赛事对战表";
+    const teamAName = $("teamAName").value.trim() || "队伍A";
+    const teamBName = $("teamBName").value.trim() || "队伍B";
     const raceTo = clamp(Number($("raceToInput").value || 3), 1, 15);
     const streakLimit = clamp(Number($("streakLimitInput").value ?? 3), 0, 20);
     const autoSort = $("autoSortSeed").checked;
@@ -701,11 +754,13 @@
     const playersB = enrich(B, "B");
 
     return {
-      version: 3,
+      version: 5,
       createdAt: Date.now(),
+      eventTitle,
       teamAName, teamBName,
       raceTo,
-      streakLimit, // 0 = off
+      streakLimit,
+      side: deepClone(draftSide), // {p1:"A"/"B", p2:"A"/"B"}
       settings: { autoSort },
       teams: {
         A: { players: playersA, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
@@ -720,6 +775,14 @@
   // ---- Helpers ----
   function opp(teamKey) { return teamKey === "A" ? "B" : "A"; }
   function teamLabel(teamKey) { return teamKey === "A" ? state.teamAName : state.teamBName; }
+
+  // ✅ 左侧永远=1P，右侧永远=2P
+  function leftKey()  { return state?.side?.p1 === "B" ? "B" : "A"; }
+  function rightKey() { return state?.side?.p2 === "A" ? "A" : "B"; }
+
+  function scoreOf(teamKey) {
+    return teamKey === "A" ? state.current.gameA : state.current.gameB;
+  }
 
   function getActivePlayer(teamKey) {
     const t = state.teams[teamKey];
@@ -895,7 +958,7 @@
   async function resetAllKeepRoster() {
     if (!state) return;
     const ok = await confirmUI(
-      "将重开整场比赛（保留名单与抢几/自爆设置；清空胜场/淘汰/自爆/日志/MVP统计/抽奖）。",
+      "将重开整场比赛（保留名单与抢几/自爆/抽签设置；清空胜场/淘汰/日志/MVP/抽奖）。",
       "确认重开？",
       "重开",
       "取消"
@@ -909,12 +972,14 @@
 
     history = [];
     state = {
-      version: 3,
+      version: 5,
       createdAt: Date.now(),
+      eventTitle: state.eventTitle,
       teamAName: state.teamAName,
       teamBName: state.teamBName,
       raceTo: state.raceTo,
       streakLimit: state.streakLimit,
+      side: deepClone(state.side),
       settings: deepClone(state.settings || { autoSort:false }),
       teams: {
         A: { players: keepA, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
@@ -934,13 +999,14 @@
   async function backToSetupDropProgress() {
     if (!state) return;
     const ok = await confirmUI(
-      "返回设置会丢弃当前比赛进度，但会把“队名/抢几/自爆/名单（含分数）”带回设置页。",
+      "返回设置会丢弃当前比赛进度，但会把“赛事名/队名/抢几/自爆/名单/抽签”带回设置页。",
       "确认返回设置？",
       "返回设置",
       "取消"
     );
     if (!ok) return;
 
+    $("eventTitle").value = state.eventTitle || "赛事对战表";
     $("teamAName").value = state.teamAName;
     $("teamBName").value = state.teamBName;
     $("raceToInput").value = state.raceTo;
@@ -949,6 +1015,9 @@
 
     $("teamAPlayers").value = playersToLines(state.teams.A.players);
     $("teamBPlayers").value = playersToLines(state.teams.B.players);
+
+    draftSide = deepClone(state.side || {p1:"A", p2:"B"});
+    updateDraftSideUI();
 
     localStorage.removeItem(STORAGE_KEY);
     state = null;
@@ -1021,7 +1090,10 @@
   }
 
   function renderRosters() {
-    const renderOne = (teamKey, elId, titleId) => {
+    const lk = leftKey();
+    const rk = rightKey();
+
+    const renderOne = (teamKey, elId, titleId, sideText) => {
       const t = state.teams[teamKey];
       const list = $(elId);
       list.innerHTML = "";
@@ -1029,7 +1101,7 @@
       const reasonMap = new Map();
       for (const e of (t.eliminated || [])) reasonMap.set(e.id, e.reason);
 
-      $(titleId).textContent = `${teamLabel(teamKey)} 对战表`;
+      $(titleId).textContent = `${sideText}（${teamLabel(teamKey)}）对战表`;
 
       for (let i=0;i<t.players.length;i++){
         const p = t.players[i];
@@ -1052,7 +1124,7 @@
         const nm = document.createElement("div");
         nm.className = "playerName";
         nm.textContent = p.name;
-        nm.title = p.name; // 悬停显示全名
+        nm.title = p.name;
         nm.addEventListener("click", async (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -1092,13 +1164,34 @@
       }
     };
 
-    renderOne("A", "rosterA", "rosterTitleA");
-    renderOne("B", "rosterB", "rosterTitleB");
+    // ✅ 左边 rosterA 显示 1P(左侧)队伍；右边 rosterB 显示 2P(右侧)队伍
+    renderOne(lk, "rosterA", "rosterTitleA", "1P");
+    renderOne(rk, "rosterB", "rosterTitleB", "2P");
   }
 
   function renderMatchUI() {
-    $("showTeamA").textContent = state.teamAName;
-    $("showTeamB").textContent = state.teamBName;
+    // title
+    $("pageTitle").textContent = state.eventTitle || "赛事对战表";
+    document.title = state.eventTitle || "赛事对战表";
+
+    const lk = leftKey();   // 1P
+    const rk = rightKey();  // 2P
+    const leftName = teamLabel(lk);
+    const rightName = teamLabel(rk);
+
+    // side draw (文字展示)
+    $("p1Show").textContent = leftName;
+    $("p2Show").textContent = rightName;
+
+    // ✅ 左侧框显示 1P队伍，右侧框显示 2P队伍
+    $("showTeamA").textContent = leftName;
+    $("showTeamB").textContent = rightName;
+
+    $("tagA").textContent = "1P";
+    $("tagB").textContent = "2P";
+
+    // hotkey hint
+    $("hotkeyHint").innerHTML = `快捷键：<strong>A</strong> ${escapeHtml(leftName)} +1局｜<strong>L</strong> ${escapeHtml(rightName)} +1局｜<strong>Backspace</strong> 撤销`;
 
     $("raceTo").textContent = state.raceTo;
 
@@ -1116,30 +1209,36 @@
 
     $("midRule").innerHTML =
       `任意一方先到 ${state.raceTo} 局即赢下此“对手”。<br/>` +
-      `赢者留场；败者淘汰；${explodeLine}。`;
+      `赢者留场；败者淘汰；${explodeLine}。<br/>` +
+      `位置抽签：<b>左侧=1P=${escapeHtml(leftName)}</b>，<b>右侧=2P=${escapeHtml(rightName)}</b>。`;
 
     $("ruleLine").innerHTML =
       `规则：每场 <b>抢${state.raceTo}局</b>；赢家留场；` +
       (state.streakLimit <= 0
         ? `已关闭自爆规则；`
-        : `任意选手 <b>连赢${state.streakLimit}个人后自爆离场</b>；`) +
-      `每队最后一位 <b>大将</b> 不受自爆限制。`;
+        : `任意选手 <b>连赢${state.streakLimit}人后自爆离场</b>；`) +
+      `每队最后一位 <b>大将</b> 不受自爆限制。` +
+      `（左侧永远显示 1P，右侧永远显示 2P）`;
 
-    const aP = getActivePlayer("A");
-    const bP = getActivePlayer("B");
+    const leftP = getActivePlayer(lk);
+    const rightP = getActivePlayer(rk);
 
-    $("activeA").textContent = aP ? aP.name : "（已出局）";
-    $("activeB").textContent = bP ? bP.name : "（已出局）";
+    $("activeA").textContent = leftP ? leftP.name : "（已出局）";
+    $("activeB").textContent = rightP ? rightP.name : "（已出局）";
 
-    $("metaA").textContent = `连胜击败数：${state.teams.A.activeStreak} ｜ 身份：${aP ? (aP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${aP ? aP.stats.gamesWon : 0}`;
-    $("metaB").textContent = `连胜击败数：${state.teams.B.activeStreak} ｜ 身份：${bP ? (bP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${bP ? bP.stats.gamesWon : 0}`;
+    $("metaA").textContent = `连胜击败数：${state.teams[lk].activeStreak} ｜ 身份：${leftP ? (leftP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${leftP ? leftP.stats.gamesWon : 0}`;
+    $("metaB").textContent = `连胜击败数：${state.teams[rk].activeStreak} ｜ 身份：${rightP ? (rightP.isTaisho ? "大将" : "普通") : "-"} ｜ 局胜：${rightP ? rightP.stats.gamesWon : 0}`;
 
-    $("scoreA").textContent = state.current.gameA;
-    $("scoreB").textContent = state.current.gameB;
+    $("scoreA").textContent = scoreOf(lk);
+    $("scoreB").textContent = scoreOf(rk);
 
     $("matchNo").textContent = state.current.matchNo;
-    $("remainA").textContent = teamRemaining("A");
-    $("remainB").textContent = teamRemaining("B");
+
+    // ✅ 剩余人数也按左右显示
+    $("remainLeftLabel").textContent = `1P（${leftName}）剩余`;
+    $("remainRightLabel").textContent = `2P（${rightName}）剩余`;
+    $("remainLeft").textContent = teamRemaining(lk);
+    $("remainRight").textContent = teamRemaining(rk);
 
     $("btnEndMatch").disabled = !canEndMatch() || state.current.finished;
 
@@ -1148,6 +1247,12 @@
     $("btnAMinus").disabled = disableScore;
     $("btnBPlus").disabled = disableScore;
     $("btnBMinus").disabled = disableScore;
+
+    // button labels show team name (left/right)
+    $("btnAPlus").textContent = `${leftName} +1局（A）`;
+    $("btnAMinus").textContent = `${leftName} -1局`;
+    $("btnBPlus").textContent = `${rightName} +1局（L）`;
+    $("btnBMinus").textContent = `${rightName} -1局`;
 
     renderRosters();
 
@@ -1166,7 +1271,7 @@
       banner.innerHTML =
         `🏁 <b>比赛结束</b>：<span class="hlGood">${escapeHtml(w)}</span> 获胜；` +
         `<span class="hlBad">${escapeHtml(l)}</span> 全员出局。<br/>` +
-        `<span class="dim">对战场数：${state.current.matchNo}｜红方胜场：${state.teams.A.matchWins}｜白方胜场：${state.teams.B.matchWins}</span>` +
+        `<span class="dim">对战场数：${state.current.matchNo}｜${escapeHtml(state.teamAName)}胜场：${state.teams.A.matchWins}｜${escapeHtml(state.teamBName)}胜场：${state.teams.B.matchWins}</span>` +
         `<br/><span class="dim">MVP：${escapeHtml(m.text)}</span>`;
     } else {
       banner.classList.add("hidden");
@@ -1191,6 +1296,13 @@
   }
 
   // ---- Events ----
+  $("btnDrawSides").addEventListener("click", () => drawDraftSide());
+  $("btnResetSides").addEventListener("click", () => resetDraftSide());
+
+  // team names change should reflect draft UI
+  $("teamAName").addEventListener("input", () => updateDraftSideUI());
+  $("teamBName").addEventListener("input", () => updateDraftSideUI());
+
   $("btnStart").addEventListener("click", () => {
     const newState = makeNewStateFromSetup();
     if (!newState) return;
@@ -1203,9 +1315,12 @@
     const bCount = state.teams.B.players.length;
     state.log = [];
     $("logList").innerHTML = "";
+
     addLog(
-      `<b>开赛：</b>${escapeHtml(state.teamAName)}（${aCount}人） vs ${escapeHtml(state.teamBName)}（${bCount}人）` +
-      `，抢${state.raceTo}局，${state.streakLimit<=0 ? "关闭自爆" : `连赢${state.streakLimit}人自爆`}（大将除外）。`
+      `<b>开赛：</b>${escapeHtml(state.eventTitle)} ｜ ` +
+      `${escapeHtml(state.teamAName)}（${aCount}人） vs ${escapeHtml(state.teamBName)}（${bCount}人）` +
+      `，抢${state.raceTo}局，${state.streakLimit<=0 ? "关闭自爆" : `连赢${state.streakLimit}人自爆`}（大将除外）。` +
+      `<br/><span class="dim">抽签：左侧(1P)=${escapeHtml(teamLabel(leftKey()))}，右侧(2P)=${escapeHtml(teamLabel(rightKey()))}</span>`
     );
 
     saveState();
@@ -1214,6 +1329,7 @@
   });
 
   $("btnLoadDemo").addEventListener("click", () => {
+    $("eventTitle").value = "GGST 国战对战表";
     $("teamAName").value = "床国";
     $("teamBName").value = "狼国";
     $("raceToInput").value = 3;
@@ -1221,6 +1337,7 @@
     $("autoSortSeed").checked = true;
     $("teamAPlayers").value = ["红1 800","红2 900","红3 1100","红4 1200","红5 1300","红6 1400","红7 1500","红8 1700"].join("\n");
     $("teamBPlayers").value = ["白1 700","白2 850","白3 1000","白4 1050","白5 1250","白6 1350","白7 1600","白8 1800"].join("\n");
+    resetDraftSide();
     toast("已填入示例名单（最后一位会自动作为大将）");
   });
 
@@ -1231,21 +1348,31 @@
     const bName = $("teamBName").value;
     const aList = $("teamAPlayers").value;
     const bList = $("teamBPlayers").value;
+
     $("teamAName").value = bName;
     $("teamBName").value = aName;
     $("teamAPlayers").value = bList;
     $("teamBPlayers").value = aList;
-    toast("已互换红白");
+
+    // swap draft side mapping too
+    draftSide = {
+      p1: draftSide.p1 === "A" ? "B" : "A",
+      p2: draftSide.p2 === "A" ? "B" : "A",
+    };
+    updateDraftSideUI();
+    toast("已互换 A/B（含抽签映射）");
   });
 
   $("btnUndo").addEventListener("click", () => undo());
   $("btnReset").addEventListener("click", () => resetAllKeepRoster());
   $("btnBackSetup").addEventListener("click", () => backToSetupDropProgress());
 
-  $("btnAPlus").addEventListener("click", () => addGame("A", +1));
-  $("btnAMinus").addEventListener("click", () => addGame("A", -1));
-  $("btnBPlus").addEventListener("click", () => addGame("B", +1));
-  $("btnBMinus").addEventListener("click", () => addGame("B", -1));
+  // ✅ 按左右(1P/2P)去加分：左按钮永远加 1P 那队
+  $("btnAPlus").addEventListener("click", () => addGame(leftKey(), +1));
+  $("btnAMinus").addEventListener("click", () => addGame(leftKey(), -1));
+  $("btnBPlus").addEventListener("click", () => addGame(rightKey(), +1));
+  $("btnBMinus").addEventListener("click", () => addGame(rightKey(), -1));
+
   $("btnEndMatch").addEventListener("click", () => endMatch());
 
   $("btnCopyLog").addEventListener("click", async () => {
@@ -1305,12 +1432,12 @@
     toast("已清空抽奖结果");
   });
 
-  // keyboard shortcuts
+  // keyboard shortcuts：A=左侧(1P)，L=右侧(2P)
   window.addEventListener("keydown", (e) => {
     if (!state) return;
     if (modal.resolve) return;
-    if (e.key === "a" || e.key === "A") { e.preventDefault(); addGame("A", +1); }
-    if (e.key === "l" || e.key === "L") { e.preventDefault(); addGame("B", +1); }
+    if (e.key === "a" || e.key === "A") { e.preventDefault(); addGame(leftKey(), +1); }
+    if (e.key === "l" || e.key === "L") { e.preventDefault(); addGame(rightKey(), +1); }
     if (e.key === "Backspace") { e.preventDefault(); undo(); }
   }, { passive:false });
 
@@ -1325,6 +1452,15 @@
     renderMatchUI();
     toast("已从本地保存恢复比赛");
   } else {
+    // init default draft side display
+    resetDraftSide();
+    // also reflect title in header live
+    $("eventTitle").addEventListener("input", () => {
+      $("pageTitle").textContent = $("eventTitle").value.trim() || "赛事对战表";
+      document.title = $("eventTitle").value.trim() || "赛事对战表";
+    });
+    $("pageTitle").textContent = $("eventTitle").value.trim() || "赛事对战表";
+    document.title = $("eventTitle").value.trim() || "赛事对战表";
     showSetupOnly();
   }
 })();
