@@ -286,7 +286,7 @@
     <div class="title">
       <h1 id="pageTitle">赛事对战表</h1>
       <div class="sub" id="ruleLine">
-        规则：每场 <b>抢3局</b>；赢家留场；任意选手 <b>连赢3个人后自爆离场</b>；每队最后一位 <b>大将</b> 不受自爆限制。（左侧永远显示 1P，右侧永远显示 2P）
+        默认规则：每场 <b>抢3局</b>；赢家留场；任意选手 <b>连赢3个人后自爆离场</b>；每队最后一位 <b>大将</b> 不受自爆限制。
       </div>
     </div>
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
@@ -313,7 +313,6 @@
           <button type="button" class="ghost" id="btnResetSides">恢复默认</button>
         </div>
         <div class="setupNote" style="margin-top:6px;">
-          抽签后：比赛界面左边永远显示 1P、右边永远显示 2P（更适合直播/投屏）。
         </div>
       </div>
     </div>
@@ -470,7 +469,7 @@
         </div>
 
         <div class="card logCard">
-          <h2>比赛日志（直播建议放中间）</h2>
+          <h2>比赛日志</h2>
           <div class="log" id="logBox">
             <ol id="logList"></ol>
           </div>
@@ -485,7 +484,7 @@
           <summary>赛后工具（MVP / 参与奖抽奖）</summary>
 
           <div style="margin-top:10px;">
-            <h2 style="margin:0 0 10px;">MVP 与参与奖抽奖</h2>
+            <h2 style="margin:0 0 10px;">MVP 和抽奖</h2>
 
             <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
               <span class="pill">当前 MVP：<strong id="mvpLong">-</strong></span>
@@ -520,14 +519,12 @@
         </details>
 
         <details class="card">
-          <summary>说明（可折叠）</summary>
+          <summary>说明</summary>
           <div class="setupNote" style="margin-top:10px;">
             <ul style="margin:0; padding-left:18px; line-height:1.75;">
-              <li>支持直接运行（离线可用），也可挂 GitHub Pages。</li>
               <li>浏览器会自动保存当前比赛状态，刷新页面不会丢。</li>
               <li>对战表：当前出战高亮；淘汰/自爆删除线变暗；点击名字复制。</li>
-              <li>抽签后：左侧永远显示 1P，右侧永远显示 2P。</li>
-              <li>赛后工具（MVP/抽奖）默认折叠，不占直播主画面。</li>
+              <li>位置抽签后：左侧1P，右侧2P。</li>
             </ul>
           </div>
         </details>
@@ -1063,7 +1060,7 @@
 
   async function clearStorage() {
     const ok = await confirmUI(
-      "清空浏览器里保存的状态（不会影响你的文件）。清空后刷新页面会回到初始状态。",
+      "清空浏览器里保存的状态",
       "确认清空本地保存？",
       "清空",
       "取消"
@@ -1247,7 +1244,7 @@
         ? `已关闭自爆规则；`
         : `任意选手 <b>连赢${state.streakLimit}人后自爆离场</b>；`) +
       `每队最后一位 <b>大将</b> 不受自爆限制。` +
-      `（左侧永远显示 1P，右侧永远显示 2P）`;
+      `（左侧 1P，右侧 2P）`;
 
     const leftP = getActivePlayer(lk);
     const rightP = getActivePlayer(rk);
@@ -1356,8 +1353,8 @@
 
   $("btnLoadDemo").addEventListener("click", () => {
     $("eventTitle").value = "GGST 国战对战表";
-    $("teamAName").value = "床国";
-    $("teamBName").value = "狼国";
+    $("teamAName").value = "红国";
+    $("teamBName").value = "白国";
     $("raceToInput").value = 3;
     $("streakLimitInput").value = 3;
     $("autoSortSeed").checked = true;
