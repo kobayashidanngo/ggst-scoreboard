@@ -77,11 +77,12 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        onerror="this.onerror=null;this.src='https://unpkg.com/@supabase/supabase-js@2';"></script>
 <script>
 /** ★★★ 替换成你自己的 ★★★ */
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL_HERE";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL = "https://devicldvgoqwdagjzivn.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_请粘贴你那一整串";
 /** ★★★ 结束 ★★★ */
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -254,4 +255,3 @@ $("btnJoin").addEventListener("click", join);
 </script>
 </body>
 </html>
-
