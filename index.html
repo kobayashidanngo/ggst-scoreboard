@@ -191,7 +191,6 @@
       width:100%;
     }
 
-    /* 直播主画面 */
     .focusLayout{
       display:grid;
       grid-template-columns: minmax(300px, 1fr) minmax(420px, 1.1fr) minmax(300px, 1fr);
@@ -226,7 +225,14 @@
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
-      gap:10px;
+      gap:12px;
+    }
+
+    .liveTeamHeadLeft{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
     }
 
     .liveTeamName{
@@ -234,6 +240,7 @@
       font-weight:1000;
       letter-spacing:.5px;
       line-height:1.1;
+      word-break:break-word;
     }
 
     .liveTag{
@@ -243,6 +250,38 @@
       border:1px solid rgba(255,255,255,.12);
       color:var(--muted);
       white-space:nowrap;
+      width:fit-content;
+    }
+
+    .remainCircle{
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      border:3px solid rgba(140,255,40,.85);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      flex:0 0 150px;
+      box-shadow:
+        0 0 0 1px rgba(140,255,40,.12) inset,
+        0 0 28px rgba(140,255,40,.08);
+      background: radial-gradient(circle at 50% 42%, rgba(140,255,40,.06), rgba(140,255,40,0) 68%);
+    }
+
+    .remainCircleLabel{
+      font-size:13px;
+      color:#dff8c5;
+      opacity:.9;
+      margin-bottom:4px;
+      letter-spacing:.08em;
+    }
+
+    .remainCircleValue{
+      font-size:56px;
+      line-height:1;
+      font-weight:1000;
+      color:#f3fff0;
     }
 
     .liveActiveLabel{
@@ -332,26 +371,37 @@
       background: rgba(255,255,255,.04);
     }
 
-    .centerTeams{
+    .centerPlayers{
       width:100%;
       display:grid;
       grid-template-columns: 1fr auto 1fr;
       gap:12px;
       align-items:center;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.03);
     }
 
-    .centerTeam{
-      font-size:26px;
+    .centerPlayerName{
+      font-size:44px;
       font-weight:1000;
-      line-height:1.15;
+      line-height:1.1;
       word-break:break-word;
     }
 
     .centerVs{
-      font-size:28px;
+      font-size:34px;
       font-weight:1000;
       opacity:.9;
-      letter-spacing:.2em;
+      letter-spacing:.12em;
+    }
+
+    .centerTeamsSub{
+      font-size:18px;
+      line-height:1.6;
+      color:var(--muted);
+      font-weight:700;
     }
 
     .megaScoreRow{
@@ -651,14 +701,22 @@
       .megaColon{
         font-size:56px;
       }
-      .centerTeam{
-        font-size:20px;
+      .centerPlayerName{
+        font-size:30px;
       }
       .liveActiveName{
         font-size:34px;
       }
       .liveTeamName{
         font-size:24px;
+      }
+      .remainCircle{
+        width:120px;
+        height:120px;
+        flex-basis:120px;
+      }
+      .remainCircleValue{
+        font-size:42px;
       }
     }
 
@@ -667,7 +725,7 @@
       .playerRight{ width:100%; align-items:flex-start; }
       .badges, .rowActions{ justify-content:flex-start; }
       .headActions{ justify-content:flex-start; }
-      .centerTeams, .megaScoreRow{
+      .centerPlayers, .megaScoreRow{
         grid-template-columns: 1fr;
       }
       .centerVs, .megaColon{
@@ -678,6 +736,10 @@
       }
       .liveControls{
         grid-template-columns:1fr;
+      }
+      .liveTeamHead{
+        flex-direction:column;
+        align-items:flex-start;
       }
     }
   </style>
@@ -798,12 +860,17 @@
       </div>
 
       <div class="focusLayout">
-        <!-- 左侧 1P -->
         <div class="focusSide">
           <div class="liveTeamPanel">
             <div class="liveTeamHead">
-              <div class="liveTeamName" id="showTeamA">队伍A</div>
-              <div class="liveTag" id="tagA">1P</div>
+              <div class="liveTeamHeadLeft">
+                <div class="liveTeamName" id="showTeamA">队伍A</div>
+                <div class="liveTag" id="tagA">1P</div>
+              </div>
+              <div class="remainCircle">
+                <div class="remainCircleLabel">剩余人数</div>
+                <div class="remainCircleValue" id="leftRemainBig">0</div>
+              </div>
             </div>
 
             <div class="liveActiveLabel">当前出战</div>
@@ -811,12 +878,12 @@
 
             <div class="liveMetaBox">
               <div class="liveMetaItem">
-                <div class="k">剩余人数</div>
-                <div class="v" id="leftRemainBig">0</div>
-              </div>
-              <div class="liveMetaItem">
                 <div class="k">当前连胜</div>
                 <div class="v" id="leftStreakBig">0</div>
+              </div>
+              <div class="liveMetaItem">
+                <div class="k">累计局胜</div>
+                <div class="v" id="leftGameWinBig">0</div>
               </div>
             </div>
 
@@ -843,17 +910,22 @@
           </div>
         </div>
 
-        <!-- 中间比分 -->
         <div class="scoreStage">
           <div class="scoreStageTop">
             <div class="scoreMini">MVP：<strong id="mvpShort">-</strong></div>
-            <div class="scoreMini" id="centerRuleMini">直播展示模式</div>
+            <div class="scoreMini" id="centerRuleMini">第 1 场 · 抢 3 局</div>
           </div>
 
-          <div class="centerTeams">
-            <div class="centerTeam" id="centerTeamLeft">队伍A</div>
+          <div class="centerPlayers">
+            <div class="centerPlayerName" id="centerPlayerLeft">-</div>
             <div class="centerVs">VS</div>
-            <div class="centerTeam" id="centerTeamRight">队伍B</div>
+            <div class="centerPlayerName" id="centerPlayerRight">-</div>
+          </div>
+
+          <div class="centerTeamsSub">
+            <span id="centerTeamLeft">队伍A</span>
+            <span> ｜ </span>
+            <span id="centerTeamRight">队伍B</span>
           </div>
 
           <div class="megaScoreRow">
@@ -863,19 +935,24 @@
           </div>
 
           <div class="centerActions">
-            <button type="button" id="btnEndMatch" disabled>结算本场（到达抢几自动结算）</button>
+            <button type="button" id="btnEndMatch">提前结算本场</button>
           </div>
 
           <div class="centerRule" id="midRule"></div>
           <div id="finishBanner" class="finish hidden"></div>
         </div>
 
-        <!-- 右侧 2P -->
         <div class="focusSide">
           <div class="liveTeamPanel">
             <div class="liveTeamHead">
-              <div class="liveTeamName" id="showTeamB">队伍B</div>
-              <div class="liveTag" id="tagB">2P</div>
+              <div class="liveTeamHeadLeft">
+                <div class="liveTeamName" id="showTeamB">队伍B</div>
+                <div class="liveTag" id="tagB">2P</div>
+              </div>
+              <div class="remainCircle">
+                <div class="remainCircleLabel">剩余人数</div>
+                <div class="remainCircleValue" id="rightRemainBig">0</div>
+              </div>
             </div>
 
             <div class="liveActiveLabel">当前出战</div>
@@ -883,12 +960,12 @@
 
             <div class="liveMetaBox">
               <div class="liveMetaItem">
-                <div class="k">剩余人数</div>
-                <div class="v" id="rightRemainBig">0</div>
-              </div>
-              <div class="liveMetaItem">
                 <div class="k">当前连胜</div>
                 <div class="v" id="rightStreakBig">0</div>
+              </div>
+              <div class="liveMetaItem">
+                <div class="k">累计局胜</div>
+                <div class="v" id="rightGameWinBig">0</div>
               </div>
             </div>
 
@@ -917,7 +994,8 @@
       </div>
 
       <div class="setupNote" style="margin-top:12px;">
-        名单编辑规则：如果你对“当前出战位”做前插/删除，系统会自动把本场比分重置为 <b>0 - 0</b>，避免对局混乱。
+        名单编辑规则：如果你对“当前出战位”做前插/删除，系统会自动把本场比分重置为 <b>0 - 0</b>。<br/>
+        提前结算规则：未到抢几也可提前结算，但会按<b>当前领先方</b>判定；如果双方平分，则不能提前结算。
       </div>
     </div>
 
@@ -997,7 +1075,7 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = "scoreboard_state_v7_live_focus";
+  const STORAGE_KEY = "scoreboard_state_v8_live_fix";
 
   const $ = (id) => document.getElementById(id);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -1166,7 +1244,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      if (!obj || obj.version !== 7) return null;
+      if (!obj || obj.version !== 8) return null;
       return obj;
     } catch (e) {
       return null;
@@ -1216,7 +1294,7 @@
     }));
 
     return {
-      version: 7,
+      version: 8,
       createdAt: Date.now(),
       eventTitle,
       teamAName, teamBName,
@@ -1258,6 +1336,11 @@
   function isTeamOut(teamKey) {
     const t = state.teams[teamKey];
     return t.pos >= t.players.length;
+  }
+
+  function getLeadingTeamKey() {
+    if (state.current.gameA === state.current.gameB) return null;
+    return state.current.gameA > state.current.gameB ? "A" : "B";
   }
 
   function addLog(html) {
@@ -1525,31 +1608,37 @@
 
     if (canEndMatch()) {
       setTimeout(() => {
-        if (state && !state.current.finished && canEndMatch()) endMatch();
+        if (state && !state.current.finished && canEndMatch()) endMatch(false);
       }, 120);
     }
   }
 
-  function endMatch() {
-    if (!state || state.current.finished) return;
-    if (!canEndMatch()) return;
+  function endMatch(forceEarly=false) {
+    if (!state || state.current.finished) return false;
 
-    pushHistory();
+    const reachedRace = canEndMatch();
+    if (!reachedRace && !forceEarly) return false;
 
     const aP = getActivePlayer("A");
     const bP = getActivePlayer("B");
-    if (!aP || !bP) return;
+    if (!aP || !bP) return false;
 
-    const aScore = state.current.gameA;
-    const bScore = state.current.gameB;
-    const winner = (aScore >= state.raceTo) ? "A" : "B";
-    const loser  = opp(winner);
+    let winner;
+    if (reachedRace) {
+      winner = (state.current.gameA >= state.raceTo) ? "A" : "B";
+    } else {
+      winner = getLeadingTeamKey();
+      if (!winner) return false;
+    }
 
+    pushHistory();
+
+    const loser = opp(winner);
     const wP = winner === "A" ? aP : bP;
     const lP = loser  === "A" ? aP : bP;
 
-    const wScore = winner === "A" ? aScore : bScore;
-    const lScore = winner === "A" ? bScore : aScore;
+    const wScore = winner === "A" ? state.current.gameA : state.current.gameB;
+    const lScore = winner === "A" ? state.current.gameB : state.current.gameA;
 
     wP.stats.gamesWon += wScore;
     wP.stats.gamesLost += lScore;
@@ -1571,6 +1660,7 @@
 
     addLog(
       `第 <b>${state.current.matchNo}</b> 场：` +
+      `${forceEarly ? `<span class="hlWarn">（提前结算）</span>` : ""}` +
       `<span class="hlGood">${escapeHtml(teamLabel(winner))} ${escapeHtml(wP.name)}</span> ` +
       `以 <b>${wScore}</b> - <b>${lScore}</b> ` +
       `击败 <span class="hlBad">${escapeHtml(teamLabel(loser))} ${escapeHtml(lP.name)}</span>` +
@@ -1610,6 +1700,36 @@
 
     saveState();
     renderAll();
+    return true;
+  }
+
+  async function handleManualEndMatch() {
+    if (!state || state.current.finished) return;
+    if (isTeamOut("A") || isTeamOut("B")) return;
+
+    if (canEndMatch()) {
+      endMatch(false);
+      return;
+    }
+
+    const leader = getLeadingTeamKey();
+    if (!leader) {
+      toast("当前平分，不能提前结算");
+      return;
+    }
+
+    const loser = opp(leader);
+    const ok = await confirmUI(
+      `当前将按领先比分提前结算本场：\n` +
+      `${teamLabel(leader)} ${scoreOf(leader)} - ${scoreOf(loser)} ${teamLabel(loser)}\n\n` +
+      `确定提前结算吗？`,
+      "提前结算本场？",
+      "提前结算",
+      "取消"
+    );
+
+    if (!ok) return;
+    endMatch(true);
   }
 
   async function resetAllKeepRoster() {
@@ -1629,7 +1749,7 @@
 
     history = [];
     state = {
-      version: 7,
+      version: 8,
       createdAt: Date.now(),
       eventTitle: state.eventTitle,
       teamAName: state.teamAName,
@@ -1879,6 +1999,8 @@
     const rk = rightKey();
     const leftName = teamLabel(lk);
     const rightName = teamLabel(rk);
+    const leftP = getActivePlayer(lk);
+    const rightP = getActivePlayer(rk);
 
     $("p1Show").textContent = leftName;
     $("p2Show").textContent = rightName;
@@ -1887,6 +2009,9 @@
     $("showTeamB").textContent = rightName;
     $("centerTeamLeft").textContent = leftName;
     $("centerTeamRight").textContent = rightName;
+
+    $("centerPlayerLeft").textContent = leftP ? leftP.name : "（已出局）";
+    $("centerPlayerRight").textContent = rightP ? rightP.name : "（已出局）";
 
     $("tagA").textContent = "1P";
     $("tagB").textContent = "2P";
@@ -1908,9 +2033,9 @@
       : `连赢${state.streakLimit}人且非大将 → 自爆离场`;
 
     $("midRule").innerHTML =
-      `任意一方先到 ${state.raceTo} 局即赢下本场。<br/>` +
-      `赢者留场；败者淘汰；${explodeLine}。<br/>` +
-      `左侧 = 1P = <b>${escapeHtml(leftName)}</b> ｜ 右侧 = 2P = <b>${escapeHtml(rightName)}</b>`;
+      `任意一方先到 ${state.raceTo} 局即可正常结算本场。<br/>` +
+      `也可以点“提前结算本场”，按当前领先比分直接结算；平分时不可提前结算。<br/>` +
+      `左侧 = 1P = <b>${escapeHtml(leftName)}</b> ｜ 右侧 = 2P = <b>${escapeHtml(rightName)}</b> ｜ ${explodeLine}`;
 
     $("centerRuleMini").textContent = `第 ${state.current.matchNo} 场 · 抢 ${state.raceTo} 局`;
 
@@ -1921,9 +2046,6 @@
         : `任意选手 <b>连赢${state.streakLimit}人后自爆离场</b>；`) +
       `每队最后一位 <b>大将</b> 不受自爆限制。` +
       `（左侧永远显示 1P，右侧永远显示 2P）`;
-
-    const leftP = getActivePlayer(lk);
-    const rightP = getActivePlayer(rk);
 
     $("activeA").textContent = leftP ? leftP.name : "（已出局）";
     $("activeB").textContent = rightP ? rightP.name : "（已出局）";
@@ -1945,14 +2067,17 @@
     $("rightRemainBig").textContent = teamRemaining(rk);
     $("leftStreakBig").textContent = state.teams[lk].activeStreak;
     $("rightStreakBig").textContent = state.teams[rk].activeStreak;
-
-    $("btnEndMatch").disabled = !canEndMatch() || state.current.finished;
+    $("leftGameWinBig").textContent = leftP ? leftP.stats.gamesWon : 0;
+    $("rightGameWinBig").textContent = rightP ? rightP.stats.gamesWon : 0;
 
     const disableScore = state.current.finished || isTeamOut("A") || isTeamOut("B");
     $("btnAPlus").disabled = disableScore;
     $("btnAMinus").disabled = disableScore;
     $("btnBPlus").disabled = disableScore;
     $("btnBMinus").disabled = disableScore;
+
+    $("btnEndMatch").disabled = disableScore;
+    $("btnEndMatch").textContent = canEndMatch() ? "结算本场（已达抢几）" : "提前结算本场";
 
     $("btnAPlus").textContent = `${leftName} +1局（A）`;
     $("btnAMinus").textContent = `${leftName} -1局`;
@@ -2080,7 +2205,7 @@
   $("btnAMinus").addEventListener("click", () => addGame(leftKey(), -1));
   $("btnBPlus").addEventListener("click", () => addGame(rightKey(), +1));
   $("btnBMinus").addEventListener("click", () => addGame(rightKey(), -1));
-  $("btnEndMatch").addEventListener("click", () => endMatch());
+  $("btnEndMatch").addEventListener("click", () => handleManualEndMatch());
 
   $("btnAddCurrentLeft").addEventListener("click", () => {
     if (!state) return;
