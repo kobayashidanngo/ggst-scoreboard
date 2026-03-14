@@ -679,44 +679,224 @@
       text-align:center;
     }
 
+    /* ===== 直播布局压缩：让两侧名单尽量完整显示 ===== */
+    .focusLayout{
+      grid-template-columns:minmax(360px,1.18fr) minmax(300px,.78fr) minmax(360px,1.18fr);
+      gap:14px;
+      align-items:stretch;
+    }
+
+    .focusSide{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:calc(100vh - 230px);
+    }
+
+    .liveTeamPanel{
+      padding:16px;
+      min-height:250px;
+      gap:12px;
+    }
+
+    .liveTeamHead{
+      align-items:center;
+    }
+
+    .liveTeamName{
+      font-size:26px;
+    }
+
+    .liveTag{
+      font-size:12px;
+      padding:5px 10px;
+    }
+
+    .remainCircle{
+      width:120px;
+      height:120px;
+      flex:0 0 120px;
+    }
+
+    .remainCircleLabel{
+      font-size:12px;
+    }
+
+    .remainCircleValue{
+      font-size:46px;
+    }
+
+    .liveActiveLabel{
+      font-size:11px;
+    }
+
+    .liveActiveName{
+      font-size:36px;
+    }
+
+    .liveMetaBox{
+      gap:8px;
+    }
+
+    .liveMetaItem{
+      padding:10px 12px;
+    }
+
+    .liveMetaItem .v{
+      font-size:20px;
+    }
+
+    .liveDesc{
+      font-size:13px;
+      min-height:0;
+    }
+
+    .liveControls{
+      gap:8px;
+    }
+
+    .liveControls button{
+      min-height:54px;
+      font-size:16px;
+      border-radius:14px;
+    }
+
+    .scoreStage{
+      padding:16px 14px;
+      min-height:250px;
+      gap:12px;
+      justify-content:flex-start;
+    }
+
+    .scoreStageTop{
+      gap:8px;
+    }
+
+    .scoreMini{
+      padding:7px 10px;
+      font-size:12px;
+    }
+
+    .centerPlayers{
+      padding:12px 14px;
+      gap:10px;
+    }
+
+    .centerPlayerName{
+      font-size:34px;
+    }
+
+    .centerVs{
+      font-size:28px;
+    }
+
+    .centerTeamsSub{
+      font-size:16px;
+    }
+
+    .megaScoreRow{
+      gap:10px;
+    }
+
+    .megaScore{
+      font-size:112px;
+      letter-spacing:-2px;
+    }
+
+    .megaColon{
+      font-size:62px;
+    }
+
+    .centerActions button{
+      min-height:48px;
+      padding:10px 16px;
+      border-radius:14px;
+      font-size:15px;
+    }
+
+    .centerRule{
+      font-size:14px;
+      line-height:1.5;
+      max-width:100%;
+      margin-top:4px;
+    }
+
+    .liveRosterPanel{
+      flex:1 1 auto;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      padding:12px 10px 10px;
+    }
+
+    .rosterHead{
+      margin-bottom:8px;
+    }
+
+    .rosterList{
+      flex:1 1 auto;
+      min-height:0;
+      max-height:none;
+      overflow:auto;
+      padding-right:2px;
+    }
+
+    .matchFooterNote{
+      display:none;
+    }
+
+    .matchTop{
+      margin-bottom:10px;
+    }
+
     @media (max-width: 1260px){
       .focusLayout{
-        grid-template-columns: 1fr;
+        grid-template-columns:1fr;
       }
+
+      .focusSide{
+        min-height:auto;
+      }
+
+      .liveTeamPanel{
+        min-height:auto;
+      }
+
+      .liveRosterPanel{
+        min-height:360px;
+      }
+
+      .rosterList{
+        max-height:520px;
+      }
+
       .scoreStage{
-        min-height: auto;
-      }
-      .megaScore{
-        font-size:120px;
+        min-height:auto;
       }
     }
 
     @media (max-width: 980px){
       .row{ grid-template-columns:1fr; }
       .grid2, .grid3{ grid-template-columns:1fr; }
-      .megaScore{
-        font-size:92px;
-        letter-spacing:-2px;
-      }
-      .megaColon{
-        font-size:56px;
-      }
-      .centerPlayerName{
-        font-size:30px;
-      }
-      .liveActiveName{
-        font-size:34px;
-      }
+
       .liveTeamName{
         font-size:24px;
       }
-      .remainCircle{
-        width:120px;
-        height:120px;
-        flex-basis:120px;
+
+      .liveActiveName{
+        font-size:32px;
       }
-      .remainCircleValue{
-        font-size:42px;
+
+      .centerPlayerName{
+        font-size:28px;
+      }
+
+      .megaScore{
+        font-size:88px;
+      }
+
+      .megaColon{
+        font-size:48px;
       }
     }
 
@@ -993,7 +1173,7 @@
         </div>
       </div>
 
-      <div class="setupNote" style="margin-top:12px;">
+      <div class="setupNote matchFooterNote" style="margin-top:12px;">
         名单编辑规则：如果你对“当前出战位”做前插/删除，系统会自动把本场比分重置为 <b>0 - 0</b>。<br/>
         提前结算规则：未到抢几也可提前结算，但会按<b>当前领先方</b>判定；如果双方平分，则不能提前结算。
       </div>
