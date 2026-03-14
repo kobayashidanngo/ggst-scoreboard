@@ -22,13 +22,13 @@
       color:var(--text);
     }
 
-    .wrap{ max-width:1200px; margin:0 auto; padding:18px; }
+    .wrap{ max-width:1280px; margin:0 auto; padding:18px; }
     header{ display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
     .title{ display:flex; flex-direction:column; gap:6px; }
     h1{ margin:0; font-size:20px; letter-spacing:.5px; }
     .sub{ color:var(--muted); font-size:13px; line-height:1.5; }
 
-    .row{ display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px; }
+    .row{ display:grid; grid-template-columns: 1.15fr .85fr; gap:14px; margin-top:14px; }
     .card{
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       border:1px solid rgba(255,255,255,.08);
@@ -38,7 +38,7 @@
     .card h2{ margin:0 0 10px; font-size:14px; color:#dbe7f3; letter-spacing:.2px; }
 
     .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+    .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
 
     .field{ display:flex; flex-direction:column; gap:6px; }
     label{ font-size:12px; color:var(--muted); }
@@ -74,7 +74,7 @@
       font-size:12px; color: var(--muted);
     }
     .pill strong{ color:var(--text); font-weight:800; }
-    .setupNote{ font-size:12px; color:var(--muted); line-height:1.65; }
+    .setupNote{ font-size:12px; color:var(--muted); line-height:1.7; }
 
     .matchTop{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .scoreboard{ display:grid; grid-template-columns: 1fr auto 1fr; gap:12px; align-items:stretch; margin-top:12px; }
@@ -114,7 +114,7 @@
 
     .hlGood{ color: var(--good); font-weight:900; }
     .hlBad{ color: var(--bad); font-weight:900; }
-    .hlWarn{ color:var(--warn); font-weight:900; }
+    .hlWarn{ color: var(--warn); font-weight:900; }
 
     .rightCol{ display:flex; flex-direction:column; gap:14px; }
     .hidden{ display:none !important; }
@@ -138,27 +138,37 @@
       min-height: 160px;
     }
     .rosterHead{
-      display:flex; align-items:flex-end; justify-content:space-between; gap:10px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
       margin-bottom:10px;
     }
     .rosterHead .title{ font-size:13px; font-weight:900; color:#dbe7f3; }
-    .rosterHead .hint{ font-size:11px; color:var(--muted); }
+    .rosterHead .hint{ font-size:11px; color:var(--muted); margin-top:4px; }
+    .headActions{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
     .rosterList{ display:flex; flex-direction:column; gap:8px; }
 
     .playerRow{
       display:flex;
       flex-wrap: wrap;
-      row-gap: 6px;
-      align-items:center;
+      row-gap: 8px;
+      align-items:flex-start;
       justify-content:space-between;
       gap:10px;
-      padding:8px 10px; border-radius:12px;
+      padding:10px 10px; border-radius:12px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
     }
     .playerLeft{
       display:flex; align-items:center; gap:10px;
-      flex: 1 1 260px;
+      flex: 1 1 250px;
       min-width: 220px;
     }
     .playerIndex{
@@ -171,7 +181,7 @@
     .playerName{
       flex: 1 1 auto;
       min-width: 10ch;
-      max-width: clamp(14ch, 26vw, 34ch);
+      max-width: clamp(14ch, 24vw, 34ch);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -182,14 +192,27 @@
       text-decoration: underline dotted;
       text-underline-offset: 3px;
     }
+    .playerRight{
+      flex:0 1 auto;
+      max-width:100%;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-end;
+    }
     .badges{
-      flex: 0 1 auto;
       max-width: 100%;
       display:flex;
       gap:6px;
       flex-wrap: wrap;
       justify-content:flex-end;
-      align-items:center;
+    }
+    .rowActions{
+      max-width:100%;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
     .badge{
@@ -204,18 +227,11 @@
     .badge.bad{ border-color: rgba(255,92,122,.30); color:#ffc4cf; background: rgba(255,92,122,.10); }
 
     .miniBtn{
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color:var(--text);
-      padding:3px 8px;
+      padding:4px 8px;
       border-radius:999px;
-      cursor:pointer;
       font-size:11px;
       line-height:1.2;
-      white-space:nowrap;
-    }
-    .miniBtn:hover{
-      background: rgba(255,255,255,.10);
+      font-weight:700;
     }
 
     .playerRow.active{
@@ -269,7 +285,9 @@
     }
     @media (max-width: 720px){
       .playerLeft{ min-width: 70%; }
-      .badges{ width:100%; justify-content:flex-start; }
+      .playerRight{ width:100%; align-items:flex-start; }
+      .badges, .rowActions{ justify-content:flex-start; }
+      .headActions{ justify-content:flex-start; }
     }
   </style>
 </head>
@@ -305,7 +323,7 @@
             <button type="button" class="ghost" id="btnResetSides">恢复默认</button>
           </div>
           <div class="setupNote" style="margin-top:6px;">
-            用途：线下上机分配手柄位（1P/2P）。<b>比赛界面左边永远显示 1P、右边永远显示 2P</b>（更直观）。
+            用途：线下上机分配手柄位（1P/2P）。<b>比赛界面左边永远显示 1P、右边永远显示 2P</b>。
           </div>
         </div>
       </div>
@@ -365,7 +383,7 @@
         1）名单顺序=上场顺序（上→下：先上场→后上场）。<br/>
         2）按分数排序：分数从小到大排列，<b>分数越大越靠后</b>；最后一位自动视为<b>大将</b>。<br/>
         3）自爆数填 0 即关闭自爆规则（大将始终不自爆）。<br/>
-        4）对战表里<strong>点击选手名字可复制</strong>（悬停可看全名）。<br/>
+        4）对战表里<strong>点击选手名字可复制</strong>。比赛中途可在名单区直接<b>改名 / 前插 / 后插 / 删除</b>。<br/>
       </div>
     </div>
 
@@ -438,28 +456,42 @@
       <div class="rosters">
         <div class="rosterCard">
           <div class="rosterHead">
-            <div class="title" id="rosterTitleA">1P 对战表</div>
-            <div class="hint">上→下：先上场→后上场</div>
+            <div>
+              <div class="title" id="rosterTitleA">1P 对战表</div>
+              <div class="hint">点击名字复制；可改名 / 前插 / 后插 / 删除</div>
+            </div>
+            <div class="headActions">
+              <button type="button" class="miniBtn" id="btnAddCurrentLeft">当前前插</button>
+              <button type="button" class="miniBtn" id="btnAddTailLeft">队尾追加</button>
+            </div>
           </div>
           <div id="rosterA" class="rosterList"></div>
         </div>
+
         <div class="rosterCard">
           <div class="rosterHead">
-            <div class="title" id="rosterTitleB">2P 对战表</div>
-            <div class="hint">上→下：先上场→后上场</div>
+            <div>
+              <div class="title" id="rosterTitleB">2P 对战表</div>
+              <div class="hint">点击名字复制；可改名 / 前插 / 后插 / 删除</div>
+            </div>
+            <div class="headActions">
+              <button type="button" class="miniBtn" id="btnAddCurrentRight">当前前插</button>
+              <button type="button" class="miniBtn" id="btnAddTailRight">队尾追加</button>
+            </div>
           </div>
           <div id="rosterB" class="rosterList"></div>
         </div>
       </div>
 
       <div class="setupNote" style="margin-top:10px;">
-        “连赢X人自爆”=同一选手连续击败 <b>X 位对方选手</b>（X 场对手更替的胜利）。自爆数填 0 则关闭自爆规则；大将不自爆。名单区可随时点击 <b>“改名”</b> 修改选手名字。
+        “连赢X人自爆”=同一选手连续击败 <b>X 位对方选手</b>。<br/>
+        <b>名单编辑规则：</b>若你对“当前出战位”做前插/删除，系统会自动把本场比分重置为 <b>0 - 0</b>，避免当前对局混乱。
       </div>
     </div>
 
     <div class="rightCol">
       <div class="card">
-        <h2>③ 比赛日志（自动记录每场结果/淘汰/自爆）</h2>
+        <h2>③ 比赛日志（自动记录每场结果/淘汰/自爆/名单调整）</h2>
         <div class="log" id="logBox">
           <ol id="logList"></ol>
         </div>
@@ -510,12 +542,13 @@
             <li>支持直接运行（离线可用），也可挂 GitHub Pages。</li>
             <li>浏览器会自动保存当前比赛状态，刷新页面不会丢。</li>
             <li>对战表：当前出战高亮；淘汰/自爆删除线变暗；点击名字复制。</li>
-            <li><b>抽签后：比赛界面左边永远是 1P，右边永远是 2P</b>（比分按钮/名单/剩余人数全部同步）。</li>
-            <li>比赛进行中可在名单区点击 <b>“改名”</b>，会立即同步到当前显示、MVP 与抽奖结果。</li>
+            <li>抽签后：比赛界面左边永远是 1P，右边永远是 2P。</li>
+            <li>比赛中途名单支持：改名、前插、后插、删除、队尾追加。</li>
           </ul>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -534,7 +567,7 @@
 
 <script>
 (() => {
-  const STORAGE_KEY = "scoreboard_state_v5_sideSwapUI";
+  const STORAGE_KEY = "scoreboard_state_v6_roster_manage";
 
   const $ = (id) => document.getElementById(id);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -592,6 +625,7 @@
   modal.ok.addEventListener("click", () => closeModal(true));
   modal.cancel.addEventListener("click", () => closeModal(false));
   modal.mask.addEventListener("click", (e) => { if (e.target === modal.mask) closeModal(false); });
+
   window.addEventListener("keydown", (e) => {
     if (!modal.resolve) return;
     if (e.key === "Escape") { e.preventDefault(); closeModal(false); }
@@ -665,6 +699,8 @@
   }
 
   let draftSide = { p1: "A", p2: "B" };
+  let state = null;
+  let history = [];
 
   function teamNameFromInputs(teamKey) {
     const aName = $("teamAName").value.trim() || "队伍A";
@@ -690,9 +726,6 @@
     toast(`抽签结果：1P=${teamNameFromInputs(draftSide.p1)}，2P=${teamNameFromInputs(draftSide.p2)}（比赛界面会左右对调）`);
   }
 
-  let state = null;
-  let history = [];
-
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   }
@@ -702,7 +735,7 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const obj = JSON.parse(raw);
-      if (!obj || obj.version !== 5) return null;
+      if (!obj || obj.version !== 6) return null;
       return obj;
     } catch (e) {
       return null;
@@ -751,11 +784,8 @@
       stats: { gamesWon: 0, gamesLost: 0, matchesWon: 0, matchesLost: 0 },
     }));
 
-    const playersA = enrich(A, "A");
-    const playersB = enrich(B, "B");
-
     return {
-      version: 5,
+      version: 6,
       createdAt: Date.now(),
       eventTitle,
       teamAName, teamBName,
@@ -764,8 +794,8 @@
       side: deepClone(draftSide),
       settings: { autoSort },
       teams: {
-        A: { players: playersA, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
-        B: { players: playersB, pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+        A: { players: enrich(A, "A"), pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
+        B: { players: enrich(B, "B"), pos: 0, activeStreak: 0, matchWins: 0, eliminated: [] },
       },
       current: { matchNo: 1, gameA: 0, gameB: 0, finished: false, winner: null },
       log: [],
@@ -816,62 +846,210 @@
     }
   }
 
-  function findPlayerById(playerId) {
-    for (const teamKey of ["A", "B"]) {
-      const team = state.teams[teamKey];
-      const player = team.players.find(p => p.id === playerId);
-      if (player) return { teamKey, team, player };
-    }
-    return null;
+  function normalizeTeam(teamKey) {
+    const t = state.teams[teamKey];
+    t.players.forEach((p, i) => {
+      p.order = i;
+      p.isTaisho = i === t.players.length - 1;
+      if (!p.stats) p.stats = { gamesWon: 0, gamesLost: 0, matchesWon: 0, matchesLost: 0 };
+    });
+    t.pos = clamp(t.pos, 0, t.players.length);
+    if (!Array.isArray(t.eliminated)) t.eliminated = [];
+    if (!isNum(t.activeStreak)) t.activeStreak = 0;
   }
 
-  function renamePlayerById(playerId) {
-    if (!state) return;
+  function stripFromEliminated(teamKey, playerId) {
+    state.teams[teamKey].eliminated = (state.teams[teamKey].eliminated || []).filter(e => e.id !== playerId);
+  }
 
-    const found = findPlayerById(playerId);
-    if (!found) {
-      toast("没找到这个选手");
-      return;
-    }
+  function findPlayerIndex(teamKey, playerId) {
+    return state.teams[teamKey].players.findIndex(p => p.id === playerId);
+  }
 
-    const { teamKey, player } = found;
-    const oldName = player.name;
-    const input = window.prompt(`修改选手名字（${teamLabel(teamKey)}）`, oldName);
+  function resetCurrentGamesWithLog(text) {
+    if (state.current.finished) return;
+    const hadScore = state.current.gameA !== 0 || state.current.gameB !== 0;
+    state.current.gameA = 0;
+    state.current.gameB = 0;
+    addLog(
+      `<span class="hlWarn">手动调整名单：</span>${escapeHtml(text)}${hadScore ? "，当前对局比分已重置为 0 - 0。" : "。"}`
+    );
+  }
 
-    if (input === null) return;
+  function finishBecauseTeamEmpty(reasonText) {
+    if (state.current.finished) return false;
+    if (!isTeamOut("A") && !isTeamOut("B")) return false;
 
-    const newName = String(input).trim();
-    if (!newName) {
+    state.current.gameA = 0;
+    state.current.gameB = 0;
+    state.current.finished = true;
+    state.current.winner = isTeamOut("A") ? "B" : "A";
+
+    addLog(
+      `<b>比赛结束：</b><span class="hlGood">${escapeHtml(teamLabel(state.current.winner))}</span> 获胜，` +
+      `<span class="hlBad">${escapeHtml(teamLabel(opp(state.current.winner)))}</span> 已无人可上。` +
+      ` <span class="dim">（${escapeHtml(reasonText)}）</span>`
+    );
+    toast(`比赛结束：${teamLabel(state.current.winner)} 获胜`);
+    return true;
+  }
+
+  function maybeResumeMatchByRosterFix(teamKey, playerName) {
+    if (!state.current.finished) return false;
+    if (isTeamOut("A") || isTeamOut("B")) return false;
+
+    state.current.finished = false;
+    state.current.winner = null;
+    state.current.gameA = 0;
+    state.current.gameB = 0;
+
+    addLog(
+      `<span class="hlWarn">恢复比赛：</span>${escapeHtml(teamLabel(teamKey))} 补入选手 ${escapeHtml(playerName)}，双方重新具备出战名单，比赛继续。`
+    );
+    toast("已恢复比赛");
+    return true;
+  }
+
+  async function renamePlayer(teamKey, playerId) {
+    const idx = findPlayerIndex(teamKey, playerId);
+    if (idx < 0) return;
+    const p = state.teams[teamKey].players[idx];
+
+    const nextName = prompt(`修改 ${teamLabel(teamKey)} 的选手名字：`, p.name);
+    if (nextName === null) return;
+
+    const trimmed = nextName.trim();
+    if (!trimmed) {
       toast("名字不能为空");
       return;
     }
-    if (newName === oldName) return;
+    if (trimmed === p.name) return;
+
+    pushHistory();
+    const old = p.name;
+    p.name = trimmed;
+    normalizeTeam(teamKey);
+
+    addLog(`<span class="hlWarn">手动改名：</span>${escapeHtml(teamLabel(teamKey))} ${escapeHtml(old)} → ${escapeHtml(trimmed)}。`);
+    saveState();
+    renderAll();
+    toast("已修改选手名字");
+  }
+
+  async function insertPlayer(teamKey, index, placeText) {
+    if (!state) return;
+
+    const raw = prompt(
+      `给 ${teamLabel(teamKey)} ${placeText}插入选手。\n可输入：名字 或 名字 1200`,
+      ""
+    );
+    if (raw === null) return;
+
+    const parsed = parsePlayerLine(raw, index);
+    if (!parsed || !parsed.name || !parsed.name.trim()) {
+      toast("请输入有效名字");
+      return;
+    }
 
     pushHistory();
 
-    player.name = newName;
+    const t = state.teams[teamKey];
+    let insertIndex = clamp(index, 0, t.players.length);
 
-    const elim = state.teams[teamKey].eliminated || [];
-    for (const e of elim) {
-      if (e.id === playerId) e.name = newName;
-    }
+    const newPlayer = {
+      id: uid(teamKey),
+      name: parsed.name.trim(),
+      seed: isNum(parsed.seed) ? parsed.seed : null,
+      order: insertIndex,
+      isTaisho: false,
+      stats: { gamesWon: 0, gamesLost: 0, matchesWon: 0, matchesLost: 0 },
+    };
 
-    if (state.raffle?.winners?.length) {
-      for (const w of state.raffle.winners) {
-        if (w.id === playerId) w.name = newName;
+    if (insertIndex < t.pos) {
+      t.players.splice(insertIndex, 0, newPlayer);
+      t.pos += 1;
+      normalizeTeam(teamKey);
+      addLog(
+        `<span class="hlWarn">手动插入：</span>${escapeHtml(teamLabel(teamKey))} 插入选手 ${escapeHtml(newPlayer.name)}（第 ${insertIndex + 1} 位）。为保持当前出战不变，当前位置已顺延。`
+      );
+    } else {
+      t.players.splice(insertIndex, 0, newPlayer);
+      normalizeTeam(teamKey);
+
+      if (insertIndex === t.pos) {
+        t.activeStreak = 0;
+        if (!state.current.finished) {
+          resetCurrentGamesWithLog(`${teamLabel(teamKey)} 在当前出战位前插入了 ${newPlayer.name}，新选手已成为当前出战者`);
+        } else {
+          addLog(
+            `<span class="hlWarn">手动插入：</span>${escapeHtml(teamLabel(teamKey))} 插入选手 ${escapeHtml(newPlayer.name)}（当前出战位）。`
+          );
+        }
+      } else {
+        addLog(
+          `<span class="hlWarn">手动插入：</span>${escapeHtml(teamLabel(teamKey))} 插入选手 ${escapeHtml(newPlayer.name)}（第 ${insertIndex + 1} 位）。`
+        );
       }
     }
 
-    addLog(
-      `<span class="hlWarn">名单修改：</span>` +
-      `${escapeHtml(teamLabel(teamKey))} ` +
-      `<b>${escapeHtml(oldName)}</b> → <b>${escapeHtml(newName)}</b>` +
-      ` <span class="dim">（${nowTime()}）</span>`
-    );
+    maybeResumeMatchByRosterFix(teamKey, newPlayer.name);
 
     saveState();
     renderAll();
-    toast(`已改名：${oldName} → ${newName}`);
+    toast("已插入选手");
+  }
+
+  async function deletePlayer(teamKey, playerId) {
+    const idx = findPlayerIndex(teamKey, playerId);
+    if (idx < 0) return;
+
+    const t = state.teams[teamKey];
+    const p = t.players[idx];
+    const phase = idx < t.pos ? "已淘汰" : (idx === t.pos ? "当前出战" : "待命");
+
+    const ok = await confirmUI(
+      `确定删除 ${teamLabel(teamKey)} 的${phase}选手「${p.name}」吗？` +
+      (idx === t.pos && !state.current.finished ? "\n删除当前出战者会把本场比分重置为 0 - 0。" : ""),
+      "确认删除选手？",
+      "删除",
+      "取消"
+    );
+    if (!ok) return;
+
+    pushHistory();
+
+    stripFromEliminated(teamKey, p.id);
+
+    if (idx < t.pos) {
+      t.players.splice(idx, 1);
+      t.pos -= 1;
+      normalizeTeam(teamKey);
+      addLog(`<span class="hlWarn">手动删除：</span>${escapeHtml(teamLabel(teamKey))} 已删除已淘汰选手 ${escapeHtml(p.name)}。`);
+    } else if (idx === t.pos) {
+      t.players.splice(idx, 1);
+      t.activeStreak = 0;
+      normalizeTeam(teamKey);
+
+      if (!state.current.finished) {
+        if (!isTeamOut(teamKey)) {
+          resetCurrentGamesWithLog(`${teamLabel(teamKey)} 删除当前出战选手 ${p.name}，已切换为下一位`);
+        } else {
+          addLog(`<span class="hlWarn">手动删除：</span>${escapeHtml(teamLabel(teamKey))} 删除当前出战选手 ${escapeHtml(p.name)}，该队已无人可上。`);
+        }
+      } else {
+        addLog(`<span class="hlWarn">手动删除：</span>${escapeHtml(teamLabel(teamKey))} 删除当前出战选手 ${escapeHtml(p.name)}。`);
+      }
+    } else {
+      t.players.splice(idx, 1);
+      normalizeTeam(teamKey);
+      addLog(`<span class="hlWarn">手动删除：</span>${escapeHtml(teamLabel(teamKey))} 删除待命选手 ${escapeHtml(p.name)}。`);
+    }
+
+    finishBecauseTeamEmpty(`${teamLabel(teamKey)} 删除了选手 ${p.name}`);
+
+    saveState();
+    renderAll();
+    toast("已删除选手");
   }
 
   function computeMVP() {
@@ -886,8 +1064,7 @@
     let top = all.filter(p => (p.stats?.gamesWon ?? 0) === max);
 
     if (top.length > 1 && state.current.finished && state.current.winner) {
-      const winTeam = state.current.winner;
-      const inWin = top.filter(p => p.teamKey === winTeam);
+      const inWin = top.filter(p => p.teamKey === state.current.winner);
       if (inWin.length > 0) top = inWin;
     }
 
@@ -1022,7 +1199,7 @@
 
     history = [];
     state = {
-      version: 5,
+      version: 6,
       createdAt: Date.now(),
       eventTitle: state.eventTitle,
       teamAName: state.teamAName,
@@ -1039,6 +1216,9 @@
       log: [],
       raffle: { count: 1, winners: [] }
     };
+
+    normalizeTeam("A");
+    normalizeTeam("B");
 
     saveState();
     $("logList").innerHTML = "";
@@ -1138,6 +1318,19 @@
     $("matchCard").classList.remove("hidden");
   }
 
+  function makeActionButton(text, onClick, danger=false) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "miniBtn" + (danger ? " danger" : "");
+    btn.textContent = text;
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await onClick();
+    });
+    return btn;
+  }
+
   function renderRosters() {
     const lk = leftKey();
     const rk = rightKey();
@@ -1159,6 +1352,7 @@
 
         const out = i < t.pos;
         const active = i === t.pos && !isTeamOut(teamKey);
+        const canInsertAround = i >= t.pos;
 
         if (out) row.classList.add("out");
         if (active) row.classList.add("active");
@@ -1185,6 +1379,9 @@
         left.appendChild(idx);
         left.appendChild(nm);
 
+        const right = document.createElement("div");
+        right.className = "playerRight";
+
         const badges = document.createElement("div");
         badges.className = "badges";
 
@@ -1207,21 +1404,23 @@
           addBadge("", "待命");
         }
 
-        const renameBtn = document.createElement("button");
-        renameBtn.type = "button";
-        renameBtn.className = "miniBtn";
-        renameBtn.textContent = "改名";
-        renameBtn.title = `修改 ${p.name} 的名字`;
-        renameBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          renamePlayerById(p.id);
-        });
+        const actions = document.createElement("div");
+        actions.className = "rowActions";
 
-        badges.appendChild(renameBtn);
+        actions.appendChild(makeActionButton("改名", () => renamePlayer(teamKey, p.id)));
+
+        if (canInsertAround) {
+          actions.appendChild(makeActionButton("前插", () => insertPlayer(teamKey, i, `第 ${i + 1} 位前`)));
+          actions.appendChild(makeActionButton("后插", () => insertPlayer(teamKey, i + 1, `第 ${i + 1} 位后`)));
+        }
+
+        actions.appendChild(makeActionButton("删除", () => deletePlayer(teamKey, p.id), true));
+
+        right.appendChild(badges);
+        right.appendChild(actions);
 
         row.appendChild(left);
-        row.appendChild(badges);
+        row.appendChild(right);
         list.appendChild(row);
       }
     };
@@ -1361,6 +1560,8 @@
 
     history = [];
     state = newState;
+    normalizeTeam("A");
+    normalizeTeam("B");
     saveState();
 
     const aCount = state.teams.A.players.length;
@@ -1422,8 +1623,24 @@
   $("btnAMinus").addEventListener("click", () => addGame(leftKey(), -1));
   $("btnBPlus").addEventListener("click", () => addGame(rightKey(), +1));
   $("btnBMinus").addEventListener("click", () => addGame(rightKey(), -1));
-
   $("btnEndMatch").addEventListener("click", () => endMatch());
+
+  $("btnAddCurrentLeft").addEventListener("click", () => {
+    if (!state) return;
+    insertPlayer(leftKey(), state.teams[leftKey()].pos, "当前出战位前");
+  });
+  $("btnAddTailLeft").addEventListener("click", () => {
+    if (!state) return;
+    insertPlayer(leftKey(), state.teams[leftKey()].players.length, "队尾");
+  });
+  $("btnAddCurrentRight").addEventListener("click", () => {
+    if (!state) return;
+    insertPlayer(rightKey(), state.teams[rightKey()].pos, "当前出战位前");
+  });
+  $("btnAddTailRight").addEventListener("click", () => {
+    if (!state) return;
+    insertPlayer(rightKey(), state.teams[rightKey()].players.length, "队尾");
+  });
 
   $("btnCopyLog").addEventListener("click", async () => {
     const text = (state?.log || [])
@@ -1494,6 +1711,8 @@
   const loaded = loadState();
   if (loaded) {
     state = loaded;
+    normalizeTeam("A");
+    normalizeTeam("B");
     history = [];
     $("setupCard").classList.add("hidden");
     $("matchCard").classList.remove("hidden");
